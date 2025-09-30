@@ -35,6 +35,13 @@ npm run reset-project
 
 This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
 
+## Project Details
+
+IDE - VScode
+Language - React Native
+Emulator - Android Studio
+Android Version - tablet with version 10
+
 ## Learn more
 
 To learn more about developing your project with Expo, look at the following resources:
