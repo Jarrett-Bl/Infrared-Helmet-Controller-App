@@ -37,10 +37,10 @@ This command will move the starter code to the **app-example** directory and cre
 
 ## Project Details
 
-IDE - VScode
-Language - React Native
-Emulator - Android Studio
-Android Version - tablet with version 10
+- IDE - VScode
+- Language - React Native
+- Emulator - Android Studio
+- Android Version - tablet with version 10
 
 ## Learn more
 
