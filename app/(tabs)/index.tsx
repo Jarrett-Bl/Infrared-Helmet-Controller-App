@@ -6,6 +6,8 @@ import ParallaxScrollView from '@/components/parallax-scroll-view';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Link } from 'expo-router';
+import { Button } from 'react-native';
+
 
 export default function HomeScreen() {
   return (
@@ -17,6 +19,9 @@ export default function HomeScreen() {
           style={styles.reactLogo}
         />
       }>
+          <Link href="/bluetoothPage2" asChild>
+              <Button title="tempNavigation" />
+          </Link>
       <ThemedView style={styles.titleContainer}>
         <ThemedText type="title">Welcome!</ThemedText>
         <HelloWave />
