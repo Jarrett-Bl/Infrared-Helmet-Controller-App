@@ -19,7 +19,7 @@ export default function HomeScreen() {
           style={styles.reactLogo}
         />
       }>
-          <Link href="/bluetoothPage2" asChild>
+          <Link href="/bluetoothDevicePairing" asChild>
               <Button title="tempNavigation" />
           </Link>
       <ThemedView style={styles.titleContainer}>
