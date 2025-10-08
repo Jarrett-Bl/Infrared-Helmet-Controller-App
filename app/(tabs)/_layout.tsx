@@ -1,11 +1,22 @@
 import { Tabs } from 'expo-router';
 import React from 'react';
-
+import { Stack } from 'expo-router';
+import { TextSizeProvider } from './context/TextSizeContext';
 import { HapticTab } from '@/components/haptic-tab';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
+export default function RootLayout() {
+    return (
+        <TextSizeProvider>
+        <Stack screenOptions ={{ headerShown: false}}>
+            <Stack.Screen name="Home" />
+            <Stack.Screen name="Explore" />
+        </Stack>
+        </TextSizeProvider>
+        );
+    }
 export default function TabLayout() {
   const colorScheme = useColorScheme();
 
