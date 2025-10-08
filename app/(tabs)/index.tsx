@@ -19,8 +19,11 @@ export default function HomeScreen() {
           style={styles.reactLogo}
         />
       }>
-          <Link href="/bluetoothPage2" asChild>
+          <Link href="/bluetoothDevicePairing" asChild>
               <Button title="tempNavigation" />
+          </Link>
+          <Link href="/settings" asChild>
+              <Button title="tmpSettings" />
           </Link>
       <ThemedView style={styles.titleContainer}>
         <ThemedText type="title">Welcome!</ThemedText>
