@@ -5,7 +5,7 @@ import { ActivityIndicator, Button, Pressable, StyleSheet, Text, View } from "re
 import { SafeAreaView } from "react-native-safe-area-context";
 
 
-export default function BlueToothConnectionPage2() {
+export default function BlueToothConnectionPage1() {
    
     const colors = dark;
     const [isLoading, setIsLoading] = useState(false);
