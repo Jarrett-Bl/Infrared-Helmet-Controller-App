@@ -27,8 +27,9 @@ export function RootLayout() {
     return (
         <TextSizeProvider>
         <Stack screenOptions ={{ headerShown: false}}>
-            <Stack.Screen name="Home" />
-            <Stack.Screen name="Explore" />
+            <Stack.Screen name="Helmet Control" />
+            <Stack.Screen name="Settings" />
+            <Stack.Screen name= "Protocols" />
         </Stack>
         </TextSizeProvider>
         );
@@ -43,20 +44,29 @@ export default function TabLayout() {
         headerShown: false,
         tabBarButton: HapticTab,
       }}>
-      <Tabs.Screen
-        name="index"
+        <Tabs.Screen
+        name="bluetoothPage1"
         options={{
-          title: 'Home',
+          title: 'Helmet Control',
+          tabBarIcon: ({ color }: {color: string}) => <IconSymbol size={28} name="house.fill" color={color} />,
+        }}
+        />
+      <Tabs.Screen
+        name="protocolPage"
+        options={{
+          title: 'Protocols',
           tabBarIcon: ({ color }: {color: string}) => <IconSymbol size={28} name="house.fill" color={color} />,
         }}
       />
       <Tabs.Screen
-        name="explore"
+        name="settings"
         options={{
-          title: 'Explore',
+          title: 'Settings',
           tabBarIcon: ({ color }: {color:string}) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
         }}
       />
+      <Tabs.Screen name="index"   options={{ href: null }} />
+      <Tabs.Screen name="explore" options={{ href: null }} />
     </Tabs>
   );
 }

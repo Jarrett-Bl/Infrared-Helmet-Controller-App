@@ -1,10 +1,10 @@
 
 
 
-import React, { createContext, userState, useState, ReactNode } from "react";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { View, Text, StyleSheet, Pressable, ScrollView, Switch } from "react-native"; // Import ScrollView and Switch
 import { StatusBar } from "expo-status-bar";
+import { createContext, ReactNode, useContext, useState } from "react";
+import { Pressable, ScrollView, StyleSheet, Switch, Text, View } from "react-native"; // Import ScrollView and Switch
+import { SafeAreaView } from "react-native-safe-area-context";
 
 interface TextSizeContextType {fontSize: number;
     setFontSize: (size: number) => void;
