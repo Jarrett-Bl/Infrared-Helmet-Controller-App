@@ -1,6 +1,3 @@
-
-
-
 import { StatusBar } from "expo-status-bar";
 import { createContext, ReactNode, useContext, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Switch, Text, View } from "react-native"; // Import ScrollView and Switch
@@ -39,7 +36,7 @@ const colors = {
     rowPressed: "#374151",
 };
 
-const SettingsRow = ({ label, onPress }) => (
+const SettingsRow = ({ label, onPress }: { label: string; onPress?: () => void }) => (
     <Pressable
         onPress={onPress}
         style={({ pressed }) => [
@@ -52,7 +49,7 @@ const SettingsRow = ({ label, onPress }) => (
     </Pressable>
 );
 
-const SettingsToggle = ({ label, value, onValueChange }) => (
+const SettingsToggle = ({ label, value, onValueChange }: { label: string; value: boolean; onValueChange: (v: boolean) => void }) => (
     <View style={styles.settingsRow}>
         <Text style={[styles.rowLabel, { color: colors.text }]}>{label}</Text>
         <Switch
@@ -64,7 +61,7 @@ const SettingsToggle = ({ label, value, onValueChange }) => (
     </View>
 );
 
-const SectionHeader = ({ title }) => (
+const SectionHeader = ({ title}: {title:string}) => (
     <Text style={[styles.sectionHeader, { color: colors.textMuted }]}>{title}</Text>
 );
 
