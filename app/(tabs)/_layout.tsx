@@ -1,11 +1,9 @@
-import { Stack, Tabs } from 'expo-router';
-import React from 'react';
-//import { TextSizeProvider } from './context/TextSizeContext';
 import { HapticTab } from '@/components/haptic-tab';
-import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
-import { createContext, useState } from 'react';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Stack, Tabs } from 'expo-router';
+import React, { createContext, useState } from 'react';
 
 
 type TextSize = 'sm' | 'md' | 'lg';
@@ -47,22 +45,28 @@ export default function TabLayout() {
         <Tabs.Screen
         name="bluetoothPage1"
         options={{
-          title: 'Helmet Control',
-          tabBarIcon: ({ color }: {color: string}) => <IconSymbol size={28} name="house.fill" color={color} />,
+          title: "Helmet Control",
+          tabBarIcon: ({ color }) => (
+            <Ionicons name="phone-portrait-outline" size={22} color={color} />
+          ),
         }}
         />
       <Tabs.Screen
-        name="protocolPage"
+        name="settings"
         options={{
-          title: 'Protocols',
-          tabBarIcon: ({ color }: {color: string}) => <IconSymbol size={28} name="house.fill" color={color} />,
+          title: "Settings",
+          tabBarIcon: ({ color }) => (
+            <MaterialCommunityIcons name="cog-outline" size={22} color={color} />
+          ),
         }}
       />
       <Tabs.Screen
-        name="settings"
+        name="protocolPage"
         options={{
-          title: 'Settings',
-          tabBarIcon: ({ color }: {color:string}) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
+          title: "Protocols",
+          tabBarIcon: ({ color }) => (
+            <Ionicons name="list-outline" size={22} color={color} />
+          ),
         }}
       />
       <Tabs.Screen name="index"   options={{ href: null }} />
