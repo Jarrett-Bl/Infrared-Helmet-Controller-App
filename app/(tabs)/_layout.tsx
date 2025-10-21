@@ -43,6 +43,16 @@ export default function TabLayout() {
         tabBarButton: HapticTab,
       }}>
         <Tabs.Screen
+        name="homeScreen"
+        options={{
+          title: "Home",
+          tabBarIcon: ({ color }) => (
+            <Ionicons name="home" size={22} color={color} />
+          ),
+        }}
+        />
+
+        <Tabs.Screen
         name="bluetoothPage1"
         options={{
           title: "Helmet Control",
@@ -69,8 +79,8 @@ export default function TabLayout() {
           ),
         }}
       />
-      {/* <Tabs.Screen name="index"   options={{ href: null }} /> */}
-      <Tabs.Screen name="explore" options={{ href: null }} />
+      <Tabs.Screen name="index"   options={{ href: null }} /> 
+      <Tabs.Screen name="explore" options={{ href: null }} /> 
     </Tabs>
   );
 }
