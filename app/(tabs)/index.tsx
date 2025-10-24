@@ -19,16 +19,6 @@ import { StyleSheet } from 'react-native';
 // }
 export default function Index() {
   return <Redirect href="/homeScreen" />;
-      <Link href="/settings" asChild>
-        <Button title="Settings" />
-      </Link>
-
-      <Link href="/runPage" asChild>
-        <Button title="runPage" />
-      </Link>
-    </View>
-  </View>
-  );
 }
 
 const styles = StyleSheet.create({
