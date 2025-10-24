@@ -14,6 +14,10 @@ export default function HomeScreen() {
       <Link href="/settings" asChild>
         <Button title="Settings" />
       </Link>
+
+      <Link href="/runPage" asChild>
+        <Button title="runPage" />
+      </Link>
     </View>
   </View>
   );
