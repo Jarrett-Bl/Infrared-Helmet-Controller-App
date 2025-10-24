@@ -1,16 +1,24 @@
-import { Link } from 'expo-router';
-import { Button, StyleSheet, View } from 'react-native';
+import { Redirect } from "expo-router";
+import { StyleSheet } from 'react-native';
 
 
+// export default function HomeScreen() {
+//   return (
+//   <View style={{ flex: 1, justifyContent: "center", alignItems: "center", padding: 18 }}>
+//     <View style={{ width: 260, gap: 12 }}>
+//       <Link href="/homeScreen" asChild>
+//         <Button title="Helmet Control" />
+//       </Link>
 
-export default function HomeScreen() {
-  return (
-  <View style={{ flex: 1, justifyContent: "center", alignItems: "center", padding: 18 }}>
-    <View style={{ width: 260, gap: 12 }}>
-      <Link href="/bluetoothDevicePairing" asChild>
-        <Button title="Helmet Control" />
-      </Link>
-
+//       <Link href="/settings" asChild>
+//         <Button title="Settings" />
+//       </Link>
+//     </View>
+//   </View>
+//   );
+// }
+export default function Index() {
+  return <Redirect href="/homeScreen" />;
       <Link href="/settings" asChild>
         <Button title="Settings" />
       </Link>

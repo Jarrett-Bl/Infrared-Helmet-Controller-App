@@ -1,7 +1,8 @@
-﻿import React from "react";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { View, Text, StyleSheet, Pressable } from "react-native";
+﻿
+import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function BlueToothConnectionPage2() {
    
@@ -17,7 +18,7 @@ export default function BlueToothConnectionPage2() {
 
             <View style={styles.center}>
                 <Pressable
-                    onPress={() => console.log("Connect pressed")}
+                    onPress={() => router.push("/")}
                     style={({ pressed }) => [
                         styles.button,
                         { backgroundColor: colors.primary, opacity: pressed ? 0.85 : 1 },

@@ -1,9 +1,11 @@
 //import { NavigationProp } from "@react-navigation/native";
 //import { useNavigation } from "expo-router";
+import { router } from "expo-router";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-export default function HomeScreen() {
+
+export default function titleScreen() {
 
     const colors = dark;
 
@@ -13,13 +15,13 @@ export default function HomeScreen() {
                 IR Helmet Controller
             </Text>
             <Image
-                source={require("../assets/images/helmet-icon.png")}
+                source={require("../../assets/images/helmet-icon.png")}
                 style={{ width: 300, height: 300, margin: 60}}
                 />
             
             <View style={styles.center}>
                 <Pressable
-                    onPress={() => console.log("start pressed")}
+                    onPress={() => router.push("/bluetoothPage1")}
                     style={({ pressed }) => [
                         styles.button,
                         { backgroundColor: colors.primary, opacity: pressed ? 0.85 : 1 },
