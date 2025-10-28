@@ -42,7 +42,7 @@ const dark = {
     buttonText: "#0B1220",
 };
 
-const styles = StyleSheet.create({
+export const styles = StyleSheet.create({
     screen: { flex: 1, padding: 16 },
     title: { fontSize: 24, fontWeight: "600" },
     center: { flex: 1, alignItems: "center", justifyContent: "center" },
