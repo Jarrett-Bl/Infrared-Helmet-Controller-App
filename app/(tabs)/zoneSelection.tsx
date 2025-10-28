@@ -1,12 +1,12 @@
 import { StatusBar } from 'expo-status-bar';
 import { useState } from 'react';
 import {
-    SafeAreaView,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 
 export default function FunctionsScreen() {
@@ -16,6 +16,7 @@ export default function FunctionsScreen() {
 
   const handleZoneSelect = (zoneNumber: number) => {
     setSelectedZone(zoneNumber);
+    console.log(`Zone Selection: Zone number: ${zoneNumber} selected`);
   };
 
   return (
@@ -60,6 +61,8 @@ export default function FunctionsScreen() {
         {/* Selected Zone Display */}
         {selectedZone && (
           <View style={styles.selectedContainer}>
+            <TouchableOpacity
+            />
             <Text style={styles.selectedText}>
               Selected Zone: {selectedZone}
             </Text>
