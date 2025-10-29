@@ -40,7 +40,7 @@ export default function ProtocolsPage() {
 
     //Set up load button will add functionality later
     const onLoad = (p: Protocol) => {
-        router.push("/protocolRunPage");
+        router.push("../protocolRunPage");
     };
 
     // Rendering each protocol card in the list
