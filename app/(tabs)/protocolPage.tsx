@@ -1,11 +1,14 @@
 // protocolPage.tsx
-import React, { useMemo, useState } from "react";
-import { View, Text, TextInput, FlatList, TouchableOpacity, StyleSheet } from "react-native";
+import { router } from "expo-router";
+import { useMemo, useState } from "react";
+import { FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View, useWindowDimensions } from "react-native";
 
 // Data structure for a protocol
 type Protocol = {
   id: string;
   name: string;
+  timeMin: number;
+  timeSec: number;
   powerLevel: number;
   frequencyHz: number;
   sessionDurationMin: number;
@@ -14,10 +17,10 @@ type Protocol = {
 
 // Protocols - with sample data for now
 const protocolsList: Protocol[] = [
-  { id: "1", name: "Memory Boost",  powerLevel: 50, frequencyHz: 10, sessionDurationMin: 15, activeZones: [1,2,3,4] },
-  { id: "2", name: "Relaxation",    powerLevel: 35, frequencyHz: 8,  sessionDurationMin: 20, activeZones: [5,6,7] },
-  { id: "3", name: "Energy Uplift", powerLevel: 60, frequencyHz: 12, sessionDurationMin: 10, activeZones: [2,8,9,10] },
-  { id: "4", name: "Deep Focus",    powerLevel: 55, frequencyHz: 9,  sessionDurationMin: 25, activeZones: [1,3,11,12] },
+  { id: "1", name: "Memory Boost", timeMin: 30, timeSec: 0, powerLevel: 50, frequencyHz: 10, sessionDurationMin: 15, activeZones: [1,2,3,4] },
+  { id: "2", name: "Relaxation", timeMin: 30, timeSec: 0, powerLevel: 35, frequencyHz: 8,  sessionDurationMin: 20, activeZones: [5,6,7] },
+  { id: "3", name: "Energy Uplift", timeMin: 30, timeSec: 0, powerLevel: 60, frequencyHz: 12, sessionDurationMin: 10, activeZones: [2,8,9,10] },
+  { id: "4", name: "Deep Focus", timeMin: 30, timeSec: 0, powerLevel: 55, frequencyHz: 9,  sessionDurationMin: 25, activeZones: [1,3,11,12] },
 ];
 
 export default function ProtocolsPage() {
@@ -37,7 +40,7 @@ export default function ProtocolsPage() {
 
     //Set up load button will add functionality later
     const onLoad = (p: Protocol) => {
-        console.log("Load protocol:", p);
+        router.push("/protocolRunPage");
     };
 
     // Rendering each protocol card in the list
@@ -90,13 +93,17 @@ export default function ProtocolsPage() {
 
 // Grid to show the active zones on each protocol card
 function ZoneGrid({ selected }: { selected: number[] }) {
+  const { width } = useWindowDimensions();
+  const base = 390;
+  const scale = Math.max(0.75, Math.min(1.25, width / base));
+  const size = Math.max(20, Math.min(48, Math.round(32 * scale)));
   return (
-    <View style={styles.zoneGrid}>
+    <View style={[styles.zoneGrid, { flexWrap: "wrap" }]}> 
       {Array.from({ length: 12 }, (_, i) => i + 1).map((n) => {
         const on = selected.includes(n);
         return (
-          <View key={n} style={[styles.zoneCell, on ? styles.zoneOn : styles.zoneOff]}>
-            <Text style={on ? styles.zoneTextOn : styles.zoneTextOff}>{n}</Text>
+          <View key={n} style={[styles.zoneCell, { width: size, height: size, borderRadius: Math.round(size * 0.25) }, on ? styles.zoneOn : styles.zoneOff]}>
+            <Text style={on ? [styles.zoneTextOn, { fontSize: Math.round(13 * scale) }] : [styles.zoneTextOff, { fontSize: Math.round(13 * scale) }]}>{n}</Text>
           </View>
         );
       })}
