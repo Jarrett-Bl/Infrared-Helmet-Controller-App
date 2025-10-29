@@ -1,3 +1,4 @@
+import HomeButton from '@/components/ui/HomeButton';
 import { StatusBar } from 'expo-status-bar';
 import { useState } from 'react';
 import {
@@ -29,6 +30,9 @@ export default function FunctionsScreen() {
       </View>
 
       {/* Zone Grid */}
+      <HomeButton
+        onPress={() => console.log('Navigating from Zone Selection to Home')}
+      />
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.gridContainer}>
           {zones.map((zoneNumber) => (

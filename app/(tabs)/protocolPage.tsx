@@ -1,6 +1,7 @@
 // protocolPage.tsx
-import React, { useMemo, useState } from "react";
-import { View, Text, TextInput, FlatList, TouchableOpacity, StyleSheet } from "react-native";
+import HomeButton from '@/components/ui/HomeButton';
+import { useMemo, useState } from "react";
+import { FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 
 // Data structure for a protocol
 type Protocol = {
@@ -39,7 +40,9 @@ export default function ProtocolsPage() {
     const onLoad = (p: Protocol) => {
         console.log("Load protocol:", p);
     };
-
+      <HomeButton
+        onPress={() => console.log('Navigating from Zone Selection to Home')}
+      />
     // Rendering each protocol card in the list
     const renderItem = ({ item }: { item: Protocol }) => (
     <View style={styles.card}>
