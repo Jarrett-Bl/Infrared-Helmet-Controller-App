@@ -51,7 +51,7 @@ export default function SimpleTimePage() {
         <View style={s.footer}>
           <Pressable
             style={s.nextBtn}
-            onPress={() => router.push("/")}
+            onPress={() => router.push("../runPage")}
           >
             <Text style={s.nextLabel}>Next</Text>
           </Pressable>
