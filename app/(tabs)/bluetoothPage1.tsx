@@ -50,7 +50,7 @@ export default function BlueToothConnectionPage1() {
            <Text style={[styles.header, { color: colors.text }]}>
               {text}
            </Text>
-           <Link href="/bluetoothDevicePairing" asChild>
+           <Link href="/powerLevelPage" asChild>
               <Button title="Next" />
             </Link>
        </SafeAreaView>
