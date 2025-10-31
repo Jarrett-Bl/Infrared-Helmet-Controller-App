@@ -12,6 +12,7 @@ import {
   useWindowDimensions,
 } from "react-native";
 
+
 // Data structure for a protocol
 type Protocol = {
   id: string;
