@@ -18,7 +18,7 @@ export default function BlueToothConnectionPage2() {
 
             <View style={styles.center}>
                 <Pressable
-                    onPress={() => router.push("/")}
+                    onPress={() => router.push("/zoneSelection")}
                     style={({ pressed }) => [
                         styles.button,
                         { backgroundColor: colors.primary, opacity: pressed ? 0.85 : 1 },

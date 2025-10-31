@@ -1,8 +1,13 @@
+import { StatusBar } from 'expo-status-bar';
 import React from 'react';
 import {
-  View, Text, ScrollView, StyleSheet, SafeAreaView, Pressable, Switch,
+  Pressable,
+  SafeAreaView,
+  ScrollView, StyleSheet,
+  Switch,
+  Text,
+  View,
 } from 'react-native';
-import { StatusBar } from 'expo-status-bar';
 
 const baseColors = {
   dark: { background:'#0D1117', card:'#161B22', text:'#E6EDF3', textMuted:'#8B949E', border:'#30363D', primary:'#58A6FF', rowPressed:'#21262D' },
