@@ -15,13 +15,13 @@ const baseColors = {
 };
 const colorBlindOverrides = { primary:'#EE9900' };
 
-function makeTheme({ theme, colorBlindMode }) {
+function makeTheme({ theme, colorBlindMode}) {
   const c = { ...(theme === 'dark' ? baseColors.dark : baseColors.light) };
   if (colorBlindMode) c.primary = colorBlindOverrides.primary;
   return c;
 }
 
-function makeStyles(themeColors, fontScale) {
+function makeStyles(themeColors: any, fontScale: any) {
   return StyleSheet.create({
     container: { flex: 1, backgroundColor: themeColors.background },
     header: { paddingHorizontal: 16, paddingVertical: 16 },
@@ -109,8 +109,8 @@ export default function SettingsPageMockup() {
       <ScrollView contentContainerStyle={s.scrollViewContent}>
         <SectionHeader title="Appearance (Local Only)" s={s} />
         <View style={s.card}>
-          <SettingsToggle label="Dark Mode (local)" value={theme === 'dark'} onChange={(v) => setTheme(v ? 'dark' : 'light')} s={s} themeColors={themeColors} />
-          <SettingsToggle label="Color-blind Accent (local)"  value={colorBlindMode} onChange={setColorBlindMode} s={s} themeColors={themeColors} />
+          <SettingsToggle label="Dark Mode (local)" value={theme === 'dark'} onChange={(v) => setTheme(v ? 'dark' : 'light')} s={s} themeColors={themeColors} icon={undefined}/>
+          <SettingsToggle label="Color-blind Accent (local)" value={colorBlindMode} onChange={setColorBlindMode} s={s} themeColors={themeColors} icon={undefined} />
         </View>
 
         <SectionHeader title="Accessibility (Local Only)" s={s} />
@@ -120,9 +120,9 @@ export default function SettingsPageMockup() {
 
         <SectionHeader title="About" s={s} />
         <View style={s.card}>
-          <SettingsRow label="Privacy Policy" s={s} themeColors={themeColors} />
-          <SettingsRow label="Terms of Service" s={s} themeColors={themeColors} />
-          <SettingsRow label="App Version"  s={s} themeColors={themeColors} />
+          <SettingsRow label="Privacy Policy" s={s} themeColors={themeColors} icon={undefined} onPress={undefined} />
+          <SettingsRow label="Terms of Service" s={s} themeColors={themeColors} icon={undefined} onPress={undefined} />
+          <SettingsRow label="App Version" s={s} themeColors={themeColors} icon={undefined} onPress={undefined} />
         </View>
       </ScrollView>
     </SafeAreaView>

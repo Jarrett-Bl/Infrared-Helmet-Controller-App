@@ -51,7 +51,7 @@ export default function SimpleTimePage() {
         <View style={s.footer}>
           <Pressable
             style={s.nextBtn}
-            onPress={() => router.push("../runPage")}
+            onPress={() => router.push("../frequencyPage")}
           >
             <Text style={s.nextLabel}>Next</Text>
           </Pressable>
@@ -131,3 +131,5 @@ const s = StyleSheet.create({
     marginBottom: 20,      
   },
 });
+
+
