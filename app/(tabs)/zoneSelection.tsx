@@ -6,11 +6,11 @@ import {
   Pressable,
   SafeAreaView,
   ScrollView,
-  StyleSheet,
   Text,
   TouchableOpacity,
-  View,
+  View
 } from 'react-native';
+import { styles } from "../../styles/sharedStyles";
 
 export default function FunctionsScreen() {
   const [selectedZones, setSelectedZones] = useState<number[]>([]);
@@ -31,7 +31,7 @@ export default function FunctionsScreen() {
     Array.isArray(selectedZones) && selectedZones.includes(zoneNumber);
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.screen}>
       <StatusBar style="light" />
 
       {/* Header */}
@@ -94,7 +94,7 @@ export default function FunctionsScreen() {
           <Pressable
   onPress={() =>
     router.push({
-      pathname: '/simpleTimePage',
+      pathname: '/powerLevelPage',
       params: { zones: JSON.stringify(selectedZones.sort((a, b) => a - b)) },
     })
   }
@@ -115,94 +115,94 @@ export default function FunctionsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#000000',
-  },
-  header: {
-    paddingHorizontal: 20,
-    paddingVertical: 20,
-    alignItems: 'center',
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#FFFF',
-    textAlign: 'center',
-  },
-  scrollContainer: {
-    flexGrow: 1,
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-  },
-  gridContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'flex-start',
-  },
-  zoneButton: {
-    width: '47%',
-    backgroundColor: '#1A1A1A',
-    borderRadius: 12,
-    padding: 20,
-    marginBottom: 15,
-    borderWidth: 2,
-    borderColor: '#333333',
-    elevation: 3,
-    shadowColor: '#FFFFFF',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
-  zoneButtonSelected: {
-    borderColor: '#00FF00',
-  },
-  zoneContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  radioContainer: {
-    marginRight: 15,
-  },
-  radioOuter: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: '#FFFFFF',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  radioSelected: {
-    borderColor: '#00FF00',
-  },
-  radioInner: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: '#00FF00',
-  },
-  zoneNumber: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-    flex: 1,
-    textAlign: 'center',
-  },
-  selectedContainer: {
-    marginTop: 30,
-    padding: 20,
-    backgroundColor: '#1A1A1A',
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: '#00FF00',
-    alignItems: 'center',
-  },
-  selectedText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#00FF00',
-  },
-});
+// const styles = StyleSheet.create({
+//   container: {
+//     flex: 1,
+//     backgroundColor: '#000000',
+//   },
+//   header: {
+//     paddingHorizontal: 20,
+//     paddingVertical: 20,
+//     alignItems: 'center',
+//   },
+//   title: {
+//     fontSize: 28,
+//     fontWeight: 'bold',
+//     color: '#FFFF',
+//     textAlign: 'center',
+//   },
+//   scrollContainer: {
+//     flexGrow: 1,
+//     paddingHorizontal: 20,
+//     paddingBottom: 20,
+//   },
+//   gridContainer: {
+//     flexDirection: 'row',
+//     flexWrap: 'wrap',
+//     justifyContent: 'flex-start',
+//   },
+//   zoneButton: {
+//     width: '47%',
+//     backgroundColor: '#1A1A1A',
+//     borderRadius: 12,
+//     padding: 20,
+//     marginBottom: 15,
+//     borderWidth: 2,
+//     borderColor: '#333333',
+//     elevation: 3,
+//     shadowColor: '#FFFFFF',
+//     shadowOffset: { width: 0, height: 2 },
+//     shadowOpacity: 0.1,
+//     shadowRadius: 4,
+//   },
+//   zoneButtonSelected: {
+//     borderColor: '#00FF00',
+//   },
+//   zoneContent: {
+//     flexDirection: 'row',
+//     alignItems: 'center',
+//     justifyContent: 'space-between',
+//   },
+//   radioContainer: {
+//     marginRight: 15,
+//   },
+//   radioOuter: {
+//     width: 24,
+//     height: 24,
+//     borderRadius: 12,
+//     borderWidth: 2,
+//     borderColor: '#FFFFFF',
+//     alignItems: 'center',
+//     justifyContent: 'center',
+//   },
+//   radioSelected: {
+//     borderColor: '#00FF00',
+//   },
+//   radioInner: {
+//     width: 12,
+//     height: 12,
+//     borderRadius: 6,
+//     backgroundColor: '#00FF00',
+//   },
+//   zoneNumber: {
+//     fontSize: 24,
+//     fontWeight: 'bold',
+//     color: '#FFFFFF',
+//     flex: 1,
+//     textAlign: 'center',
+//   },
+//   selectedContainer: {
+//     marginTop: 30,
+//     padding: 20,
+//     backgroundColor: '#1A1A1A',
+//     borderRadius: 12,
+//     borderWidth: 2,
+//     borderColor: '#00FF00',
+//     alignItems: 'center',
+//   },
+//   selectedText: {
+//     fontSize: 18,
+//     fontWeight: '600',
+//     color: '#00FF00',
+//   },
+// });
