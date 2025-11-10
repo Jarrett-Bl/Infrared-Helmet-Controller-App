@@ -20,6 +20,7 @@ export default function RootLayout() {
     (async () => {
       try {
         await initDb();
+        //await seedProtocols();
         console.log('SQLite database initialized');
       } catch (error) {
         console.error('DB initialization failed:', error);
