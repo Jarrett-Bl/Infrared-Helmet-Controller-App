@@ -1,8 +1,9 @@
-﻿import { router } from "expo-router";
+﻿import HomeButton from '@/components/ui/HomeButton';
+import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { styles } from "../styles/sharedStyles";
+import { styles } from "../../styles/sharedStyles";
 
 export default function BlueToothConnectionPage2() {
   return (
@@ -12,6 +13,7 @@ export default function BlueToothConnectionPage2() {
       <Text style={[styles.title, { marginTop: 8 }]}>
         Press Start to begin designing a protocol
       </Text>
+      <HomeButton/>
 
       <View style={styles.center}>
         <Pressable
