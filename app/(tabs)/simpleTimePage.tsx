@@ -1,3 +1,4 @@
+import HomeButton from '@/components/ui/HomeButton';
 import Slider from "@react-native-community/slider";
 import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
@@ -14,6 +15,7 @@ export default function SimpleTimePage() {
     <SafeAreaView style={styles.screen}>
       <StatusBar style="light" backgroundColor="#0E1418" />
       <Text style={styles.title}>Select Your Session Time</Text>
+      <HomeButton/>
 
       <View style={lStyles.body}>
         <View style={[styles.card, lStyles.cardGrow]}>

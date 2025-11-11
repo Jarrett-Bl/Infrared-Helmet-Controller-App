@@ -1,18 +1,20 @@
+import HomeButton from '@/components/ui/HomeButton';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-    Platform,
-    Pressable,
-    SafeAreaView,
-    StyleSheet,
-    Text,
-    TextStyle,
-    View,
-    ViewStyle,
-    useWindowDimensions,
+  Platform,
+  Pressable,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextStyle,
+  View,
+  ViewStyle,
+  useWindowDimensions,
 } from "react-native";
 
-// Data structure for protocol settings - built through previous selection screens
-type protocolSettings = {
+// Data structure for session settings - built through previous selection screens
+type sessionSettings = {
   id: string;
   name: string;
   timeMin: number;
@@ -24,7 +26,7 @@ type protocolSettings = {
 };
 
 // Test Sessions  - with sample data for now
-const sessionList: protocolSettings[] = [
+const sessionList: sessionSettings[] = [
   { id: "1", name: "Memory Boost", timeMin: 30, timeSec: 0, powerLevel: 50, frequencyHz: 10, sessionDurationMin: 15, activeZones: [1,2,3,4] },
   { id: "2", name: "Relaxation", timeMin: 30, timeSec: 0, powerLevel: 35, frequencyHz: 8,  sessionDurationMin: 20, activeZones: [5,6,7] },
   { id: "3", name: "Energy Uplift", timeMin: 30, timeSec: 0, powerLevel: 60, frequencyHz: 12, sessionDurationMin: 10, activeZones: [2,8,9,10] },
@@ -33,12 +35,12 @@ const sessionList: protocolSettings[] = [
 
 
 export type RunSessionScreenProps = {
-  helmetValues: protocolSettings;
+  helmetValues: sessionSettings;
 
   onSaveProtocol?: () => void;
   onStart?: () => void;
   onStop?: () => void;
-
+  
   // Styling
   contentStyle?: ViewStyle;
 };
@@ -51,10 +53,11 @@ export default function RunSessionScreen({
   onStop,
   contentStyle,
 }: RunSessionScreenProps) {
-  const { width } = useWindowDimensions();
-  const base = 390;
-  const scale = Math.max(0.8, Math.min(1.25, width / base));
-  const bottomControlsHeight = Math.round(84 * scale);
+  const { width, height } = useWindowDimensions();
+  const baseWidth = 390;
+  const baseHeight = 844;
+  const globalScale = Math.max(0.65, Math.min(1, Math.min(width / baseWidth, height / baseHeight)));
+  const bottomControlsHeight = Math.round(84 * globalScale);
   const bottomOffset = Platform.OS === "android" ? 28 : 16;
   /** Timer + countdown logic */
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -141,7 +144,9 @@ export default function RunSessionScreen({
   const primaryTitle = running ? "Pause" : isComplete ? "Start" : isAtInitial ? "Start" : "Resume";
   const primaryOnPress = running ? pauseTimer : isComplete ? undefined : startTimer;
 
-  // Compute status
+  // Compute status When session has not been started yet
+  // or when Stop was pressed (stopped === true), show a RED idle/not-started
+  // indicator.
   let statusText = "";
   let statusDotStyle = s.statusPaused;
   if (isAtInitial && !running) {
@@ -169,11 +174,16 @@ export default function RunSessionScreen({
           accessibilityRole="header"
           testID="hdr-session"
         >
-          {helmetValues.name}
+          Your Session
         </Text>
+        <HomeButton/>
       </View>
 
-  <View style={[s.content, contentStyle, { paddingBottom: bottomControlsHeight + bottomOffset + 12 }]}>
+  <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={[{ paddingHorizontal: 28 }, contentStyle, { paddingBottom: bottomControlsHeight + bottomOffset + 24 }]}
+        keyboardShouldPersistTaps="handled"
+      >
         {/* Time */}
         <Row>
           <InfoCard value={mm} label="Minutes" testID="card-minutes" />
@@ -204,27 +214,47 @@ export default function RunSessionScreen({
           />
         </View>
 
-        {/* Start / Pause / Stop */}
-        <View
-          style={[
-            s.bottomRow,
-            {
-              position: "absolute",
-              left: 0,
-              right: 0,
-              bottom: bottomOffset,
-              paddingHorizontal: Math.round(20 * scale),
-              paddingVertical: Math.round(10 * scale),
-            },
-          ]}
-        >
-          <PrimaryButton
-            title={primaryTitle}
-            onPress={primaryOnPress}
-            testID="btn-start-pause"
-          />
-          <SecondaryButton title="Stop" onPress={stopTimer} testID="btn-stop" />
+        {/* Save */}
+        <View style={{ marginVertical: 12 * globalScale, width: "100%" }}>
+          <Pressable
+            onPress={() => {
+              console.log("Save Protocol pressed");
+              onSaveProtocol?.();
+            }}
+            testID="btn-save"
+            style={({ pressed }) => [s.saveBtn, pressed && s.btnPressed]}
+            accessibilityRole="button"
+            accessibilityLabel="Save as Protocol"
+            hitSlop={8}
+          >
+            <Text style={[s.saveBtnTxt, { fontSize: Math.round(26 * globalScale) }]}>Save as Protocol</Text>
+          </Pressable>
         </View>
+
+        {/* spacer so scrolling doesn't hide content under bottom controls */}
+        <View style={{ height: 20 }} />
+      </ScrollView>
+
+      {/* Fixed bottom controls so they're always reachable */}
+  <View
+        style={[
+          s.bottomRowFixed,
+          {
+            position: "absolute",
+            left: 0,
+            right: 0,
+            bottom: bottomOffset,
+            paddingVertical: Math.round(10 * globalScale),
+            paddingHorizontal: Math.round(20 * globalScale),
+          },
+        ]}
+      >
+        <PrimaryButton
+          title={primaryTitle}
+          onPress={primaryOnPress}
+          testID="btn-start-pause"
+        />
+        <SecondaryButton title="Stop" onPress={stopTimer} testID="btn-stop" />
       </View>
     </SafeAreaView>
   );
@@ -245,12 +275,12 @@ function InfoCard({
   large?: boolean;
   testID?: string;
 }) {
-  // compute responsive font sizing based on top-level scale
-  const { width } = useWindowDimensions();
-  const base = 390;
-  const scale = Math.max(0.8, Math.min(1.25, width / base));
+  const { width, height } = useWindowDimensions();
+  const baseW = 390;
+  const baseH = 844;
+  const scale = Math.max(0.65, Math.min(1, Math.min(width / baseW, height / baseH)));
   return (
-    <View style={s.card} testID={testID} accessibilityLabel={`${label} card`}>
+    <View style={[s.card, { paddingVertical: Math.round(18 * scale), paddingHorizontal: Math.round(16 * scale) }]} testID={testID} accessibilityLabel={`${label} card`}>
       <Text style={[s.cardValue, large && s.cardValueLg, { fontSize: Math.round((large ? 36 : 34) * scale) }]}>{value}</Text>
       <Text style={[s.cardLabel, { fontSize: Math.round(14 * scale) }]}>{label}</Text>
     </View>
@@ -269,16 +299,18 @@ function ZoneSquares({
   style?: ViewStyle;
   testID?: string;
 }) {
-  const { width } = useWindowDimensions();
+  const { width, height } = useWindowDimensions();
   const baseWidth = 390;
-  const scale = Math.max(0.75, Math.min(1.25, width / baseWidth));
-  const horizontalPadding = 56;
-  const availableWidth = Math.max(180, width - horizontalPadding);
-  const columns = Math.min(4, Math.max(2, Math.floor(availableWidth / 80)));
+  const baseHeight = 844;
+  const scale = Math.max(0.65, Math.min(1, Math.min(width / baseWidth, height / baseHeight)));
+  const horizontalPadding = 56; // content padding * 2
+  const availableWidth = Math.max(160, width - horizontalPadding);
+  // choose columns dynamically based on available width (target ~72px per box)
+  const columns = Math.min(6, Math.max(2, Math.floor(availableWidth / Math.max(64, Math.round(72 * scale)))));
   const gap = Math.round(8 * scale);
   const rawSZ = Math.floor((availableWidth - gap * (columns - 1)) / columns);
-  const minSZ = 44;
-  const maxSZ = 80;
+  const minSZ = Math.max(36, Math.round(36 * scale));
+  const maxSZ = Math.max(64, Math.round(80 * scale));
   const SZ = Math.max(minSZ, Math.min(maxSZ, rawSZ));
 
   const numStyle = { fontSize: Math.round(12 * scale) };
@@ -380,13 +412,13 @@ const s = StyleSheet.create({
   },
 
   topBar: {
+    position: "relative",
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 20,
-    paddingTop: 42,
-    marginBottom: 18,
-    position: "relative",
+    paddingTop: 18,
+    marginBottom: 12,
   },
   iconBtn: {
     width: 40,
@@ -407,7 +439,7 @@ const s = StyleSheet.create({
     zIndex: 1,
   },
 
-  content: { flex: 1, paddingHorizontal: 28, paddingTop: 8 },
+  content: { paddingHorizontal: 28 },
 
   row: { flexDirection: "row", gap: 18, marginBottom: 20 },
 
@@ -439,6 +471,16 @@ const s = StyleSheet.create({
   zoneOff: { backgroundColor: DOT_OFF },
   zoneNumOn: { color: TEXT, fontWeight: "800", fontSize: 14 },
   zoneNumOff: { color: "#8BA0AC", fontWeight: "700", fontSize: 14 },
+  
+  saveBtn: {
+    width: "100%",
+    paddingVertical: 22,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: BLUE,
+  },
+  saveBtnTxt: { fontSize: 26, color: TEXT, fontWeight: "900" },
 
   statusWrap: { flexDirection: "row", alignItems: "center", marginBottom: 14 },
   statusDot: { width: 10, height: 10, borderRadius: 6, marginRight: 8, borderWidth: 1, borderColor: DOT_BORDER },
@@ -453,6 +495,16 @@ const s = StyleSheet.create({
     gap: 20,
     marginTop: "auto",
     marginBottom: 22,
+  },
+
+  bottomRowFixed: {
+    flexDirection: "row",
+    gap: 16,
+    paddingHorizontal: 28,
+    paddingVertical: 12,
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: "transparent",
   },
 
   btnPrimary: {

@@ -1,5 +1,5 @@
 import { fireEvent, render } from "@testing-library/react-native";
-import BlueToothConnectionPage2 from "../app/bluetoothDevicePairing";
+import BlueToothConnectionPage2 from "../app/(tabs)/bluetoothDevicePairing";
 
 describe("BlueToothConnectionPage2Tests", () => {
   it("renders the UI for the title and start button", () => {
