@@ -1,33 +1,28 @@
+import HomeButton from '@/components/ui/HomeButton';
 import { Link } from 'expo-router';
 import { StatusBar } from "expo-status-bar";
-import React, { useState } from "react";
-import { Button, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { useState } from "react";
+import { Button, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 
 export default function BlueToothConnectionPage1() {
    
     const colors = dark;
-    const [text, onChangeText] = React.useState('');
+
     const [selectedItem, setSelectedItem] = useState(null); 
-        
+    
     const handlePress = (itemIdentifier: any) => {
         setSelectedItem(itemIdentifier);
-    };
+      };
 
     return (
         <View style={[styles.screen, { backgroundColor: colors.bg }]}>
             <Text style={[styles.title, { color: colors.text, marginTop: 16 }]}>
-                Frequency (Hz)
+                Power Level
             </Text>
+            <HomeButton/>
             <StatusBar style={"light"} backgroundColor="#000000" />
-            <TextInput multiline={false}
-                style={styles.input}
-                placeholder="0 - 20,000"
-                placeholderTextColor="gray"
-                onChangeText={newText => onChangeText(newText)}
-                value={text}
-            />
             <SafeAreaView style={[styles.container, { backgroundColor: colors.bg }]}>
                 <TouchableOpacity
                     style={[styles.button, selectedItem === '0' && styles.selectedButton]}
@@ -50,7 +45,7 @@ export default function BlueToothConnectionPage1() {
                         <Text style={ styles.buttonLabel }>100%</Text>
                 </TouchableOpacity>
             </SafeAreaView>
-            <Link href="/simpleTimePage" asChild>
+            <Link href="/frequencyPage" asChild>
                 <Button title="Next" />
             </Link>
         </View>
@@ -80,7 +75,7 @@ const styles = StyleSheet.create({
         justifyContent: 'space-around', 
         alignItems: 'center',
         padding: 10,
-        paddingBottom: 320
+        paddingBottom: 520
     },
     button: {
         aspectRatio: 2, 
@@ -100,13 +95,4 @@ const styles = StyleSheet.create({
         fontWeight: 700,
         color: dark.buttonText
     },
-    input: {
-        height: 40,
-        margin: 80,
-        borderWidth: 1,
-        padding: 10,
-        backgroundColor: dark.button,
-        borderRadius: 10,
-        color: dark.text
-    }
 });

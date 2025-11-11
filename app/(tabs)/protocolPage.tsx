@@ -1,4 +1,5 @@
 // protocolPage.tsx
+import HomeButton from '@/components/ui/HomeButton';
 import { router } from "expo-router";
 import { useMemo, useState } from "react";
 import {
@@ -60,6 +61,7 @@ export default function ProtocolsPage() {
   return (
     <View style={styles.screen}>
       <Text style={styles.title}>Protocols</Text>
+      <HomeButton/>
 
       <TextInput
         placeholder="⌕ Search by name or id"

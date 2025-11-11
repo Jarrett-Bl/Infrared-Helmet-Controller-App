@@ -81,7 +81,13 @@ export default function TabLayout() {
       />
       <Tabs.Screen name="index"   options={{ href: null }} /> 
       <Tabs.Screen name="zoneSelection"   options={{ href: null }} /> 
-      <Tabs.Screen name="simpleTimePage"   options={{ href: null }} /> 
+      <Tabs.Screen name="simpleTimePage"  options={{ href: null }} /> 
+      <Tabs.Screen name="bluetoothDevicePairing" options={{href: null}}/>
+      <Tabs.Screen name="runPage" options={{href: null}}/>
+      <Tabs.Screen name="frequencyPage" options={{href: null}}/>
+      <Tabs.Screen name="powerLevelPage" options={{href: null}}/>
+      <Tabs.Screen name="protocolRunPage" options={{href: null}}/>
+    
 
     </Tabs>
   );

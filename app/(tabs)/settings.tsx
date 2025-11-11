@@ -1,3 +1,4 @@
+import HomeButton from '@/components/ui/HomeButton';
 import { StatusBar } from 'expo-status-bar';
 import React from 'react';
 import {
@@ -105,6 +106,7 @@ export default function SettingsPageMockup() {
     <SafeAreaView style={s.container}>
       <StatusBar style={theme === 'dark' ? 'light' : 'dark'} backgroundColor={themeColors.background} />
       <View style={s.header}><Text style={s.title}>Settings</Text></View>
+      <HomeButton/>
 
       <ScrollView contentContainerStyle={s.scrollViewContent}>
         <SectionHeader title="Appearance (Local Only)" s={s} />
