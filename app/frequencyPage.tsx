@@ -50,7 +50,7 @@ export default function BlueToothConnectionPage1() {
                         <Text style={ styles.buttonLabel }>100%</Text>
                 </TouchableOpacity>
             </SafeAreaView>
-            <Link href="/bluetoothDevicePairing" asChild>
+            <Link href="/simpleTimePage" asChild>
                 <Button title="Next" />
             </Link>
         </View>

@@ -4,56 +4,76 @@ import { StatusBar } from "expo-status-bar";
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-
+import { styles } from "../../styles/sharedStyles";
 
 export default function SimpleTimePage() {
   const [minutes, setMinutes] = useState(15);
   const quick = [5, 10, 15, 30];
 
   return (
-    <SafeAreaView style={s.screen}>
-      <StatusBar style="light" backgroundColor="#000" />
+    <SafeAreaView style={styles.screen}>
+      <StatusBar style="light" backgroundColor="#0E1418" />
+      <Text style={styles.title}>Select Your Session Time</Text>
 
-      <View style={s.body}>
-        <Text style={s.title}>Session Time (Minutes)</Text>
-
-        <View style={[s.card, { backgroundColor: "#000" }]}>
-          <View style={s.rangeRow}>
-            <Text style={s.subText}>1 - 30</Text>
-            <Text style={s.subText}>{minutes}</Text>
+      <View style={lStyles.body}>
+        <View style={[styles.card, lStyles.cardGrow]}>
+          <View style={lStyles.rangeRow}>
+            <Text style={styles.cardSub}>1 – 30</Text>
+            <Text style={lStyles.valueText}>{minutes} min</Text>
           </View>
 
           <Slider
-            style={s.slider}
+            style={lStyles.slider}
             minimumValue={1}
             maximumValue={30}
             step={1}
             value={minutes}
             onValueChange={(v) => setMinutes(Math.round(v))}
-            minimumTrackTintColor="#E5E7EB" 
-            maximumTrackTintColor="#374151"
-            thumbTintColor="#E5E7EB"
+            minimumTrackTintColor="#AEB7BF"
+            maximumTrackTintColor="#22303A"
+            thumbTintColor="#FFFFFF"
           />
 
-          <View style={s.chipsWrap}>
-            {quick.map((m) => (
+          <View style={lStyles.grid}>
+            <View style={lStyles.col}>
               <Pressable
-                key={m}
-                onPress={() => setMinutes(m)}
-                style={[s.chip, minutes === m && s.chipSelected]}
+                onPress={() => setMinutes(5)}
+                style={[lStyles.tile, minutes === 5 && lStyles.tileSelected]}
               >
-                <Text style={s.chipText}>{m} minutes</Text>
+                <Text style={lStyles.tileText}>5 minutes</Text>
               </Pressable>
-            ))}
+              <Pressable
+                onPress={() => setMinutes(15)}
+                style={[lStyles.tile, minutes === 15 && lStyles.tileSelected]}
+              >
+                <Text style={lStyles.tileText}>15 minutes</Text>
+              </Pressable>
+            </View>
+
+            <View style={lStyles.col}>
+              <Pressable
+                onPress={() => setMinutes(10)}
+                style={[lStyles.tile, minutes === 10 && lStyles.tileSelected]}
+              >
+                <Text style={lStyles.tileText}>10 minutes</Text>
+              </Pressable>
+
+              <Pressable
+                onPress={() => setMinutes(30)}
+                style={[lStyles.tile, minutes === 30 && lStyles.tileSelected]}
+              >
+                <Text style={lStyles.tileText}>30 minutes</Text>
+              </Pressable>
+            </View>
           </View>
         </View>
 
-        <View style={s.footer}>
+        <View style={lStyles.footer}>
           <Pressable
-            style={s.nextBtn}
-            onPress={() => router.push("../frequencyPage")}
+            style={[styles.loadBtn, styles.loadBtnFull]}
+            onPress={() => router.push("/runPage")}
           >
-            <Text style={s.nextLabel}>Next</Text>
+            <Text style={styles.loadBtnText}>Next</Text>
           </Pressable>
         </View>
       </View>
@@ -62,74 +82,55 @@ export default function SimpleTimePage() {
 }
 
 export const options = {
-  title: "Simple Time",
-  headerStyle: { backgroundColor: "#000" },
-  headerTintColor: "#E5E7EB",
-  contentStyle: { backgroundColor: "#000" },
+  title: "Time Selection Basic User",
+  headerStyle: { backgroundColor: "#0E1418" },
+  headerTintColor: "#FFFFFF",
+  contentStyle: { backgroundColor: "#0E1418" },
 };
 
-const s = StyleSheet.create({
-
-  screen: { flex: 1, backgroundColor: "#000" },
-
-  body: { flex: 1, paddingHorizontal: 16, paddingTop: 12 },
-
-
-  title: { fontSize: 20, fontWeight: "700", color: "#E5E7EB", marginBottom: 12 },
-
-  card: {
-    flex: 1, 
-    backgroundColor: "#111827", 
-    borderRadius: 12,
-    padding: 16,
-    justifyContent: "flex-start",
-  },
-
+const lStyles = StyleSheet.create({
+  body: { flex: 1, justifyContent: "space-between" },
+  cardGrow: { flex: 1 },
   rangeRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 6,
+    marginBottom: 8,
   },
-  subText: { color: "#9CA3AF", fontSize: 12 },
-
-
-  chipsWrap: {
-    marginTop: 18,
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
-  },
-  chip: {
-    width: "48%",
-    height: 64,
-    borderRadius: 14,
-    backgroundColor: "#2F3843", 
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 18,
-    borderWidth: 1,
-    borderColor: "#2B3340",
-  },
-  chipSelected: { borderColor: "#A3AED0" },
-  chipText: { color: "#E5E7EB", fontSize: 14, fontWeight: "700" },
-
- 
-  footer: { flex: 1, justifyContent: "flex-end", paddingBottom: 24 },
-  nextBtn: {
-    backgroundColor: "#60A5FA", 
-    borderRadius: 12,
-    height: 44,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  nextLabel: { color: "#FFFFFF", fontSize: 16, fontWeight: "700" },
+  valueText: { color: "white", fontSize: 18, fontWeight: "700" },
   slider: {
-    height: 40,           
-    transform: [{ scaleY: 1.4 }], 
+    height: 40,
+    transform: [{ scaleY: 1.2 }],
     marginTop: 6,
-    marginBottom: 20,      
+    marginBottom: 12,
   },
+  grid: {
+    flex: 1,
+    flexDirection: "row",
+    marginTop: 8,
+  },
+  col: {
+    flex: 1,
+    minHeight: 0,          
+  },
+  tile: {
+    flex: 1,
+    backgroundColor: "#1A1A1A",
+    borderRadius: 14,
+    borderWidth: 2,
+    borderColor: "#333333",
+    margin: 8,
+    alignItems: "center",
+    justifyContent: "center",
+    elevation: 3,
+  },
+  tileSelected: {
+    borderColor: "#00FF00",
+  },
+  tileText: {
+    color: "white",
+    fontSize: 48,
+    fontWeight: "700",
+  },
+  footer: { marginTop: 16, marginBottom: 24 },
 });
-
-

@@ -1,60 +1,54 @@
-﻿
-import { router } from "expo-router";
+﻿import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { styles } from "../styles/sharedStyles";
 
 export default function BlueToothConnectionPage2() {
-   
-    const colors = dark;
+  return (
+    <SafeAreaView style={styles.screen}>
+      <StatusBar style="light" backgroundColor="#0E1418" />
 
-    return (
-        <SafeAreaView style={[styles.screen, { backgroundColor: colors.bg }]}>
-            <StatusBar style={"light"} backgroundColor="#000000" />
+      <Text style={[styles.title, { marginTop: 8 }]}>
+        Press Start to begin designing a protocol
+      </Text>
 
-            <Text style={[styles.title, { color: colors.text, marginTop: 16 }]}>
-               Press start to begin designing protocol 
-            </Text>
-
-            <View style={styles.center}>
-                <Pressable
-                    onPress={() => router.push("/zoneSelection")}
-                    style={({ pressed }) => [
-                        styles.button,
-                        { backgroundColor: colors.primary, opacity: pressed ? 0.85 : 1 },
-                    ]}
-                >
-                    <Text style={[styles.buttonLabel, { color: colors.buttonText }]}>
-                        Start
-                    </Text>
-                </Pressable>
-            </View>
-        </SafeAreaView>
-    );
+      <View style={styles.center}>
+        <Pressable
+          onPress={() => router.push("/zoneSelection")}
+          style={({ pressed }) => [
+            lStyles.startBtn,
+            pressed && { opacity: 0.9 },
+          ]}
+        >
+          <Text style={lStyles.startLabel}>Start</Text>
+        </Pressable>
+      </View>
+    </SafeAreaView>
+  );
 }
 
-
-
-const dark = {
-    bg: "#000000",     
-    text: "#E5E7EB",
-    primary: "#3B82F6",
-    buttonText: "#0B1220",
-};
-
-export const styles = StyleSheet.create({
-    screen: { flex: 1, padding: 16 },
-    title: { fontSize: 24, fontWeight: "600" },
-    center: { flex: 1, alignItems: "center", justifyContent: "center" },
-    button: {
-        minWidth: 240,
-        minHeight: 100,
-        paddingVertical: 14,
-        paddingHorizontal: 24,
-        borderRadius: 999,
-        alignItems: "center",
-        justifyContent: "center"
-      
-    },
-    buttonLabel: { fontSize: 24, fontWeight: "bold" },
+const lStyles = StyleSheet.create({
+  startBtn: {
+    minWidth: 260,
+    minHeight: 100,
+    paddingVertical: 16,
+    paddingHorizontal: 28,
+    borderRadius: 999,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#2196F3",   
+    borderWidth: 1,
+    borderColor: "#22303A",       
+    ...Platform.select({
+      android: { elevation: 2 },
+      ios: { shadowColor: "#000", shadowOpacity: 0.2, shadowRadius: 6, shadowOffset: { width: 0, height: 3 } },
+    }),
+  },
+  startLabel: {
+    color: "white",
+    fontSize: 24,
+    fontWeight: "800",
+    letterSpacing: 0.3,
+  },
 });
