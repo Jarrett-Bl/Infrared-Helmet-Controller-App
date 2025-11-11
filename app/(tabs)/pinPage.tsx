@@ -3,17 +3,16 @@ import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useState } from 'react';
 import {
-    Alert,
-    SafeAreaView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 
+import { logGlobalState, setAdminMode, setUserMode } from '../../globals/GlobalVar';
 
-
-const ADMIN_PIN = '1234'; // You can change this or make it configurable
+const ADMIN_PIN = '1234';
 
 export default function PinEntryScreen() {
   const [pin, setPin] = useState('');
@@ -31,27 +30,34 @@ export default function PinEntryScreen() {
 
   const handleSubmit = async () => {
     if (pin.length !== 4) {
-      Alert.alert('Error', 'Please enter a 4-digit PIN');
+       console.log('Pin entered is not 4 digits')
       return;
     }
 
     setIsLoading(true);
 
-    // Simulate authentication delay
-    setTimeout(() => {
-      if (pin === ADMIN_PIN) {
-        console.log('✅ Admin PIN correct');
-        router.push('/protocolRunPage');
-      } else {
-        console.log('❌ Admin PIN incorrect');
-        Alert.alert('Access Denied', 'Incorrect PIN. Please try again.');
-        setPin(''); // Clear PIN on failure
-      }
-      setIsLoading(false);
-    }, 500);
+    if (pin === ADMIN_PIN) {
+      console.log('Admin PIN correct');
+      setAdminMode(); 
+      logGlobalState(); 
+      setPin('');
+      router.push('/(tabs)/settings');
+    } else {
+      console.log(' Admin PIN incorrect'); 
+      setUserMode();
+      logGlobalState();
+      setPin('');
+    }
+    
+    setIsLoading(false);
   };
 
   const handleCancel = () => {
+    // Clear PIN on cancel
+    setPin('');
+    console.log('PIN entry cancelled'); 
+    setUserMode(); 
+    logGlobalState();
     router.back(); // Go back to previous screen
   };
 
@@ -99,7 +105,7 @@ export default function PinEntryScreen() {
                     <MaterialIcons 
                       name="backspace" 
                       size={24} 
-                      color={pin.length === 0 ? '#444' : '#FFFFFF'} 
+                      color={pin.length === 0 ? '#2196F3' : '#FFFFFF'} 
                     />
                   </TouchableOpacity>
                 );
@@ -252,7 +258,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   submitButtonActive: {
-    backgroundColor: '#00FF00',
+    backgroundColor: '#2196F3',
   },
   submitButtonLoading: {
     backgroundColor: '#666666',
