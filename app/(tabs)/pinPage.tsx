@@ -41,7 +41,7 @@ export default function PinEntryScreen() {
       setAdminMode(); 
       logGlobalState(); 
       setPin('');
-      router.push('/(tabs)/settings');
+      router.push('/(tabs)/protocolPage');
     } else {
       console.log(' Admin PIN incorrect'); 
       setUserMode();
