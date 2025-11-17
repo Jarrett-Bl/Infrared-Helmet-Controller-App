@@ -87,7 +87,7 @@ export default function TabLayout() {
       <Tabs.Screen name="frequencyPage" options={{href: null}}/>
       <Tabs.Screen name="powerLevelPage" options={{href: null}}/>
       <Tabs.Screen name="protocolRunPage" options={{href: null}}/>
-      <Tabs.Screen name="pinPage" options={{href: null}}/>
+      
 
     
 

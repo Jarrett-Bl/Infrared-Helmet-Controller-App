@@ -22,7 +22,7 @@ export default function NewStartScreen() {
   const handleAdminMode = () => {
     console.log('Admin mode selected');
     // Navigate to admin interface or settings
-    router.push('/(tabs)/pinPage');
+    router.push('/pinPage');
   };
 
   return (

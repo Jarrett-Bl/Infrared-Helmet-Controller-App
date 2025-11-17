@@ -10,7 +10,7 @@ import {
   View,
 } from 'react-native';
 
-import { logGlobalState, setAdminMode, setUserMode } from '../../globals/GlobalVar';
+import { logGlobalState, setAdminMode, setUserMode } from '../globals/GlobalVar';
 
 const ADMIN_PIN = '1234';
 
