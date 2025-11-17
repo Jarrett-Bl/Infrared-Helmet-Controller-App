@@ -9,18 +9,20 @@ import {
   View
 } from 'react-native';
 
+
+
 export default function NewStartScreen() {
   
   const handleUserMode = () => {
     console.log('User mode selected');
     // Navigate to main app (tabs)
-    router.push('/(tabs)/protocolPage');
+    router.push('/(tabs)/homeScreen');
   };
 
   const handleAdminMode = () => {
     console.log('Admin mode selected');
     // Navigate to admin interface or settings
-    router.push('/(tabs)/pinPage');
+    router.push('/pinPage');
   };
 
   return (

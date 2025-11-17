@@ -10,7 +10,7 @@ import {
   View,
 } from 'react-native';
 
-import { logGlobalState, setAdminMode, setUserMode } from '../../globals/GlobalVar';
+import { logGlobalState, setAdminMode, setUserMode } from '../globals/GlobalVar';
 
 const ADMIN_PIN = '1234';
 
@@ -41,7 +41,7 @@ export default function PinEntryScreen() {
       setAdminMode(); 
       logGlobalState(); 
       setPin('');
-      router.push('/(tabs)/settings');
+      router.push('/(tabs)/protocolPage');
     } else {
       console.log(' Admin PIN incorrect'); 
       setUserMode();
