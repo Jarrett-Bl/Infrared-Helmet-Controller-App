@@ -1,29 +1,46 @@
-import HomeButton from '@/components/ui/HomeButton';
+import HomeButton from "@/components/ui/HomeButton";
 import Slider from "@react-native-community/slider";
 import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { styles } from "../../styles/sharedStyles";
+import { useProtocol } from '../ProtcolStorageContext';
 
 export default function SimpleTimePage() {
   const [minutes, setMinutes] = useState(15);
-  const quick = [5, 10, 15, 30];
+  const { setTime, saveProtocol, protocol } = useProtocol();
+
+  const handleNext = async () => {
+    // Store time in context (minutes + 0 seconds)
+    setTime(minutes, 0);
+
+    try {
+      const id = await saveProtocol();
+      console.log("Protocol saved with id:", id);
+      router.push("/runPage");
+    } catch (e) {
+      console.error("Failed to save protocol", e);
+      Alert.alert("Error", "Could not save protocol. Please try again.");
+    }
+  };
 
   return (
     <SafeAreaView style={styles.screen}>
       <StatusBar style="light" backgroundColor="#0E1418" />
       <Text style={styles.title}>Select Your Session Time</Text>
-      <HomeButton/>
+      <HomeButton />
 
       <View style={lStyles.body}>
         <View style={[styles.card, lStyles.cardGrow]}>
+          {/* Range header */}
           <View style={lStyles.rangeRow}>
             <Text style={styles.cardSub}>1 – 30</Text>
             <Text style={lStyles.valueText}>{minutes} min</Text>
           </View>
 
+          {/* Slider */}
           <Slider
             style={lStyles.slider}
             minimumValue={1}
@@ -36,6 +53,7 @@ export default function SimpleTimePage() {
             thumbTintColor="#FFFFFF"
           />
 
+          {/* Quick-pick tiles */}
           <View style={lStyles.grid}>
             <View style={lStyles.col}>
               <Pressable
@@ -44,6 +62,7 @@ export default function SimpleTimePage() {
               >
                 <Text style={lStyles.tileText}>5 minutes</Text>
               </Pressable>
+
               <Pressable
                 onPress={() => setMinutes(15)}
                 style={[lStyles.tile, minutes === 15 && lStyles.tileSelected]}
@@ -70,10 +89,11 @@ export default function SimpleTimePage() {
           </View>
         </View>
 
+        {/* Next button */}
         <View style={lStyles.footer}>
           <Pressable
             style={[styles.loadBtn, styles.loadBtnFull]}
-            onPress={() => router.push("/runPage")}
+            onPress={handleNext}
           >
             <Text style={styles.loadBtnText}>Next</Text>
           </Pressable>
@@ -113,7 +133,7 @@ const lStyles = StyleSheet.create({
   },
   col: {
     flex: 1,
-    minHeight: 0,          
+    minHeight: 0,
   },
   tile: {
     flex: 1,
@@ -131,8 +151,9 @@ const lStyles = StyleSheet.create({
   },
   tileText: {
     color: "white",
-    fontSize: 48,
+    fontSize: 24,
     fontWeight: "700",
+    textAlign: "center",
   },
   footer: { marginTop: 16, marginBottom: 24 },
 });
