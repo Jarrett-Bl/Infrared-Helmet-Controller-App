@@ -8,7 +8,7 @@ export type ZoneConfig = {
 };
 
 export type Protocol = {
-  id: number;              // uuid
+  id?: number;              // uuid does this need to be optional 
   name: string;
   timeMin: number;
   timeSec: number;
