@@ -3,26 +3,24 @@ import Slider from "@react-native-community/slider";
 import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useState } from "react";
-import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useProtocol } from '../../context/ProtcolStorageContext';
 import { styles } from "../../styles/sharedStyles";
-import { useProtocol } from '../ProtcolStorageContext';
 
 export default function SimpleTimePage() {
   const [minutes, setMinutes] = useState(15);
-  const { setTime, saveProtocol, protocol } = useProtocol();
+  const { setTime} = useProtocol();
 
   const handleNext = async () => {
     // Store time in context (minutes + 0 seconds)
     setTime(minutes, 0);
 
     try {
-      const id = await saveProtocol();
-      console.log("Protocol saved with id:", id);
+      
       router.push("/runPage");
     } catch (e) {
-      console.error("Failed to save protocol", e);
-      Alert.alert("Error", "Could not save protocol. Please try again.");
+      console.error("Nav Failed", e);
     }
   };
 

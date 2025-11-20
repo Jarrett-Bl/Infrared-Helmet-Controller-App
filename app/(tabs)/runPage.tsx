@@ -1,4 +1,3 @@
-// app/runPage.tsx
 import HomeButton from "@/components/ui/HomeButton";
 import React, {
   useCallback,
@@ -20,7 +19,7 @@ import {
   ViewStyle,
   useWindowDimensions,
 } from "react-native";
-import { useProtocol } from '../ProtcolStorageContext';
+import { useProtocol } from '../../context/ProtcolStorageContext';
 
 /** Local view model type (for this screen only) */
 type SessionSettings = {
@@ -45,6 +44,11 @@ export default function RunPage() {
   );
   const bottomControlsHeight = Math.round(84 * globalScale);
   const bottomOffset = Platform.OS === "android" ? 28 : 16;
+
+  useEffect(() => {
+    console.log("RunPage protocol:", JSON.stringify(protocol, null, 2));
+  }, [protocol]);
+
 
   // Derive helmetValues from protocol or fallback to defaults
   const helmetValues: SessionSettings = useMemo(() => {
@@ -74,7 +78,7 @@ export default function RunPage() {
       powerLevel: firstZoneCfg?.powerLevel ?? 0,
       frequencyHz: firstZoneCfg?.frequencyHz ?? 0,
       sessionDurationMin: protocol.timeMin, // you can change this if you want
-      activeZones: zoneIds.length ? zoneIds : [1, 2, 3, 4],
+      activeZones: zoneIds
     };
   }, [protocol]);
 
@@ -187,6 +191,13 @@ export default function RunPage() {
 
   const handleSaveProtocol = useCallback(async () => {
     try {
+      // if already saved once in this session, skip re-saving
+      if (protocol?.id) {
+        console.log("Protocol already saved with id:", protocol.id);
+        Alert.alert("Already saved", `Protocol id: ${protocol.id}`);
+        return;
+      }
+
       const id = await saveProtocol();
       console.log("Protocol saved with id:", id);
       Alert.alert("Saved", `Protocol saved with id ${id}`);
@@ -194,7 +205,7 @@ export default function RunPage() {
       console.error("Failed to save protocol", e);
       Alert.alert("Error", "Could not save protocol. Please try again.");
     }
-  }, [saveProtocol]);
+  }, [protocol, saveProtocol]);
 
   return (
     <SafeAreaView style={s.screen}>

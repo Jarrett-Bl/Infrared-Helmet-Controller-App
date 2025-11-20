@@ -4,7 +4,7 @@ import { StatusBar } from "expo-status-bar";
 import { useState } from "react";
 import { Button, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useProtocol } from '../ProtcolStorageContext';
+import { useProtocol } from '../../context/ProtcolStorageContext';
 
 const dark = {
   bg: "#0E1418",

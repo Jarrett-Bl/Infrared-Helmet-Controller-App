@@ -10,8 +10,8 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
+import { useProtocol } from '../../context/ProtcolStorageContext';
 import { styles } from "../../styles/sharedStyles";
-import { useProtocol } from '../ProtcolStorageContext';
 
 export default function FunctionsScreen() {
   const { protocol, initProtocol, setZonesFromSelection } = useProtocol();
@@ -19,19 +19,11 @@ export default function FunctionsScreen() {
 
   useEffect(() => {
     initProtocol();
-  },[]);
+  },[initProtocol]);
 
   const zones = Array.from({ length: 12 }, (_, i) => i + 1);
 
-  // const toggleZone = useCallback((zoneNumber: number) => {
-  //   setSelectedZones((prev: number[]) => {
-      
-  //     const safePrev = Array.isArray(prev) ? prev : [];
-  //     return safePrev.includes(zoneNumber)
-  //       ? safePrev.filter((z) => z !== zoneNumber)
-  //       : [...safePrev, zoneNumber];
-  //   });
-  // }, []);
+ 
   const toggleZone = useCallback((zoneNumber: number) => {
     setSelectedZones((prev) =>
       prev.includes(zoneNumber)
@@ -104,12 +96,7 @@ export default function FunctionsScreen() {
         </View>
 
           <Pressable
-  onPress={() =>
-    router.push({
-      pathname: '/powerLevelPage',
-      params: { zones: JSON.stringify(selectedZones.sort((a, b) => a - b)) },
-    })
-  }
+  onPress={handleNext}
   style={({ pressed }) => [
     styles.selectedContainer,
     { opacity: pressed ? 0.8 : 1 },
