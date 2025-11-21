@@ -189,10 +189,15 @@ export default function RunPage() {
     statusDotStyle = s.statusPaused;
   }
 
+  //think I need to add clear Protocol method to Context methods 
+  // upon save currently I am not incrementing the id var, leading to matching id check to return early. 
+  //TODO !!
+
   const handleSaveProtocol = useCallback(async () => {
     try {
       // if already saved once in this session, skip re-saving
       if (protocol?.id) {
+        console.log(protocol);
         console.log("Protocol already saved with id:", protocol.id);
         Alert.alert("Already saved", `Protocol id: ${protocol.id}`);
         return;
