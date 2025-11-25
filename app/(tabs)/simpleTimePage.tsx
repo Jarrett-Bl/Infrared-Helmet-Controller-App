@@ -13,7 +13,7 @@ export default function SimpleTimePage() {
   const { setTime} = useProtocol();
 
   const handleNext = async () => {
-    // Store time in context (minutes + 0 seconds)
+    
     setTime(minutes, 0);
 
     try {

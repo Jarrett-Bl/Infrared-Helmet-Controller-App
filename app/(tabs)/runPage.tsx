@@ -21,7 +21,7 @@ import {
 } from "react-native";
 import { useProtocol } from '../../context/ProtcolStorageContext';
 
-/** Local view model type (for this screen only) */
+
 type SessionSettings = {
   id: string;
   name: string;
@@ -50,10 +50,10 @@ export default function RunPage() {
   }, [protocol]);
 
 
-  // Derive helmetValues from protocol or fallback to defaults
+  
   const helmetValues: SessionSettings = useMemo(() => {
     if (!protocol) {
-      // Fallback sample if somehow protocol is missing
+      // Fallback
       return {
         id: "local-default",
         name: "Quick Session",
@@ -77,12 +77,12 @@ export default function RunPage() {
       timeSec: protocol.timeSec,
       powerLevel: firstZoneCfg?.powerLevel ?? 0,
       frequencyHz: firstZoneCfg?.frequencyHz ?? 0,
-      sessionDurationMin: protocol.timeMin, // you can change this if you want
+      sessionDurationMin: protocol.timeMin, // you can change this if you want for per zone
       activeZones: zoneIds
     };
   }, [protocol]);
 
-  /** Timer + countdown logic */
+ 
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const initialTotalSeconds = helmetValues.timeMin * 60 + helmetValues.timeSec;
@@ -91,7 +91,7 @@ export default function RunPage() {
   const [stopped, setStopped] = useState<boolean>(false);
 
   useEffect(() => {
-    // reset when helmetValues changes
+    
     setRemaining(helmetValues.timeMin * 60 + helmetValues.timeSec);
     setRunning(false);
     setStopped(false);
@@ -195,14 +195,6 @@ export default function RunPage() {
 
   const handleSaveProtocol = useCallback(async () => {
     try {
-      // if already saved once in this session, skip re-saving
-      if (protocol?.id) {
-        console.log(protocol);
-        console.log("Protocol already saved with id:", protocol.id);
-        Alert.alert("Already saved", `Protocol id: ${protocol.id}`);
-        return;
-      }
-
       const id = await saveProtocol();
       console.log("Protocol saved with id:", id);
       Alert.alert("Saved", `Protocol saved with id ${id}`);
@@ -210,7 +202,7 @@ export default function RunPage() {
       console.error("Failed to save protocol", e);
       Alert.alert("Error", "Could not save protocol. Please try again.");
     }
-  }, [protocol, saveProtocol]);
+  },[saveProtocol]);
 
   return (
     <SafeAreaView style={s.screen}>
@@ -321,7 +313,6 @@ export default function RunPage() {
   );
 }
 
-/* ---------- Subcomponents ---------- */
 
 function Row({ children }: { children: React.ReactNode }) {
   return <View style={s.row}>{children}</View>;
@@ -507,7 +498,6 @@ function SecondaryButton({
   );
 }
 
-/* ---------- Styles & helpers ---------- */
 
 const BG = "#0E1418";
 const CARD = "#252D34";
