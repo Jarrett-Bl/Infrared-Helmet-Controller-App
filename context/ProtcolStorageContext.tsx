@@ -15,6 +15,7 @@ type ProtocolContextValue = {
   setFrequencyForAllZones: (frequencyHz: number) => void;
   setTime: (timeMin: number, timeSec: number) => void;
   saveProtocol: () => Promise<number>;
+  loadProtocol: (p: Protocol) => void; 
 };
 
 const ProtocolStorageContext = createContext<ProtocolContextValue | undefined>(
@@ -107,6 +108,10 @@ export function ProtocolProvider({ children }: { children: ReactNode }) {
     return newId;
   };
 
+  const loadProtocol = (p: Protocol) => {
+    setProtocol(p);
+  };
+
   return (
     <ProtocolStorageContext.Provider
       value={{
@@ -117,6 +122,7 @@ export function ProtocolProvider({ children }: { children: ReactNode }) {
         setFrequencyForAllZones,
         setTime,
         saveProtocol,
+        loadProtocol,
       }}
     >
       {children}

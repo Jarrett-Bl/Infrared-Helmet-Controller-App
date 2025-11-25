@@ -1,7 +1,6 @@
-// protocolPage.tsx
 import HomeButton from '@/components/ui/HomeButton';
 import { router } from "expo-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   FlatList,
   Platform,
@@ -13,9 +12,11 @@ import {
 } from "react-native";
 import { styles } from "../../styles/sharedStyles";
 
+import { useProtocol } from "../../context/ProtcolStorageContext";
+import { getProtocols, type Protocol as DbProtocol } from "../../databaseLib/DB";
 
-// Data structure for a protocol
-type Protocol = {
+
+type ProtocolCard = {
   id: string;
   name: string;
   timeMin: number;
@@ -26,35 +27,68 @@ type Protocol = {
   activeZones: number[];
 };
 
-// Protocols - with sample data for now
-const protocolsList: Protocol[] = [
-  { id: "1", name: "Memory Boost", timeMin: 30, timeSec: 0, powerLevel: 50, frequencyHz: 10, sessionDurationMin: 15, activeZones: [1,2,3,4] },
-  { id: "2", name: "Relaxation", timeMin: 30, timeSec: 0, powerLevel: 35, frequencyHz: 8,  sessionDurationMin: 20, activeZones: [5,6,7] },
-  { id: "3", name: "Energy Uplift", timeMin: 30, timeSec: 0, powerLevel: 60, frequencyHz: 12, sessionDurationMin: 10, activeZones: [2,8,9,10] },
-  { id: "4", name: "Deep Focus", timeMin: 30, timeSec: 0, powerLevel: 55, frequencyHz: 9,  sessionDurationMin: 25, activeZones: [1,3,11,12] },
-];
-
 export default function ProtocolsPage() {
-  const [query, setQuery] = useState(""); // Search query state
+  const [query, setQuery] = useState("");
+  const [dbProtocols, setDbProtocols] = useState<DbProtocol[]>([]);
+  const [cards, setCards] = useState<ProtocolCard[]>([]);
+  const { loadProtocol } = useProtocol();
 
-  // Filter protocols based on search query
+  // Log
+  useEffect(() => {
+    (async () => {
+      try {
+        const protocols = await getProtocols();
+        console.log("Protocols in DB on ProtocolsPage mount:", protocols);
+
+        setDbProtocols(protocols);
+
+        const mapped: ProtocolCard[] = protocols.map((p) => {
+          const zoneIds = Object.keys(p.Zones || {}).map(Number);
+          const firstZoneId = zoneIds[0];
+          const firstCfg =
+            firstZoneId != null ? p.Zones[firstZoneId] : undefined;
+
+          return {
+            id: String(p.id ?? ""),
+            name: p.name,
+            timeMin: p.timeMin,
+            timeSec: p.timeSec,
+            powerLevel: firstCfg?.powerLevel ?? 0,
+            frequencyHz: firstCfg?.frequencyHz ?? 0,
+            sessionDurationMin: p.timeMin,
+            activeZones: zoneIds,
+          };
+        });
+
+        setCards(mapped);
+      } catch (e) {
+        console.warn("Failed to load protocols from DB:", e);
+      }
+    })();
+  }, []);
+
   const filteredProtocols = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return protocolsList; // query empty
-    return protocolsList.filter((p) => {
+    if (!q) return cards;
+    return cards.filter((p) => {
       const inName = p.name.toLowerCase().includes(q);
       const inId = p.id.toLowerCase().includes(q);
       return inName || inId;
     });
-  }, [query]);
+  }, [cards, query]);
 
-  // Set up load button will add functionality later
-  const onLoad = (p: Protocol) => {
-    router.push("../protocolRunPage");
+  const onLoad = (card: ProtocolCard) => {
+    const full = dbProtocols.find((p) => String(p.id) === card.id);
+    if (!full) {
+      console.warn("Protocol not found for id", card.id);
+      return;
+    }
+
+    loadProtocol(full);
+    router.push("/runPage");
   };
 
-  // Rendering each protocol card in the list
-  const renderItem = ({ item }: { item: Protocol }) => (
+  const renderItem = ({ item }: { item: ProtocolCard }) => (
     <Card item={item} onLoad={onLoad} />
   );
 
@@ -93,11 +127,11 @@ function Card({
   item,
   onLoad,
 }: {
-  item: Protocol;
-  onLoad: (p: Protocol) => void;
+  item: ProtocolCard;
+  onLoad: (p: ProtocolCard) => void;
 }) {
   const { width } = useWindowDimensions();
-  const isNarrow = width < 410; // magic number currently Changeable
+  const isNarrow = width < 410;
 
   return (
     <View
@@ -105,7 +139,7 @@ function Card({
         styles.card,
         isNarrow ? styles.cardColumn : styles.cardRow,
         Platform.select({
-          android: styles.cardElevated, 
+          android: styles.cardElevated,
           ios: undefined,
         }),
       ]}
@@ -132,7 +166,6 @@ function Card({
   );
 }
 
-// Grid to show the active zones on each protocol card
 function ZoneGrid({ selected }: { selected: number[] }) {
   const { width } = useWindowDimensions();
   const base = 390;
@@ -174,4 +207,3 @@ function ZoneGrid({ selected }: { selected: number[] }) {
     </View>
   );
 }
-
