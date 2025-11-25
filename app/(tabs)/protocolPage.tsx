@@ -1,6 +1,6 @@
 import HomeButton from '@/components/ui/HomeButton';
-import { router } from "expo-router";
-import { useEffect, useMemo, useState } from "react";
+import { router, useFocusEffect } from "expo-router";
+import { useCallback, useMemo, useState } from "react";
 import {
   FlatList,
   Platform,
@@ -34,38 +34,49 @@ export default function ProtocolsPage() {
   const { loadProtocol } = useProtocol();
 
   // Log
-  useEffect(() => {
-    (async () => {
-      try {
-        const protocols = await getProtocols();
-        console.log("Protocols in DB on ProtocolsPage mount:", protocols);
+  useFocusEffect(
+    useCallback(() => {
+      let isActive = true;
 
-        setDbProtocols(protocols);
+      (async () => {
+        try {
+          const protocols = await getProtocols();
+          if (!isActive) return;
 
-        const mapped: ProtocolCard[] = protocols.map((p) => {
-          const zoneIds = Object.keys(p.Zones || {}).map(Number);
-          const firstZoneId = zoneIds[0];
-          const firstCfg =
-            firstZoneId != null ? p.Zones[firstZoneId] : undefined;
+          console.log("Protocols in DB on ProtocolsPage focus:", protocols);
 
-          return {
-            id: String(p.id ?? ""),
-            name: p.name,
-            timeMin: p.timeMin,
-            timeSec: p.timeSec,
-            powerLevel: firstCfg?.powerLevel ?? 0,
-            frequencyHz: firstCfg?.frequencyHz ?? 0,
-            sessionDurationMin: p.timeMin,
-            activeZones: zoneIds,
-          };
-        });
+          setDbProtocols(protocols);
 
-        setCards(mapped);
-      } catch (e) {
-        console.warn("Failed to load protocols from DB:", e);
-      }
-    })();
-  }, []);
+          const mapped: ProtocolCard[] = protocols.map((p) => {
+            const zoneIds = Object.keys(p.Zones || {}).map(Number);
+            const firstZoneId = zoneIds[0];
+            const firstCfg =
+              firstZoneId != null ? p.Zones[firstZoneId] : undefined;
+
+            return {
+              id: String(p.id ?? ""),
+              name: p.name,
+              timeMin: p.timeMin,
+              timeSec: p.timeSec,
+              powerLevel: firstCfg?.powerLevel ?? 0,
+              frequencyHz: firstCfg?.frequencyHz ?? 0,
+              sessionDurationMin: p.timeMin,
+              activeZones: zoneIds,
+            };
+          });
+
+          setCards(mapped);
+        } catch (e) {
+          console.warn("Failed to load protocols from DB:", e);
+        }
+      })();
+
+      // cleanup if screen loses focus before fetch finishes
+      return () => {
+        isActive = false;
+      };
+    }, [])
+  );
 
   const filteredProtocols = useMemo(() => {
     const q = query.trim().toLowerCase();
