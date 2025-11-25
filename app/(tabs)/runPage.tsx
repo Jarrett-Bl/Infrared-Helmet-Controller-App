@@ -195,14 +195,6 @@ export default function RunPage() {
 
   const handleSaveProtocol = useCallback(async () => {
     try {
-      
-      if (protocol?.id) {
-        console.log(protocol);
-        console.log("Protocol already saved with id:", protocol.id);
-        Alert.alert("Already saved", `Protocol id: ${protocol.id}`);
-        return;
-      }
-
       const id = await saveProtocol();
       console.log("Protocol saved with id:", id);
       Alert.alert("Saved", `Protocol saved with id ${id}`);
@@ -210,7 +202,7 @@ export default function RunPage() {
       console.error("Failed to save protocol", e);
       Alert.alert("Error", "Could not save protocol. Please try again.");
     }
-  }, [protocol, saveProtocol]);
+  },[saveProtocol]);
 
   return (
     <SafeAreaView style={s.screen}>
