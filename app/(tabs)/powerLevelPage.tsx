@@ -27,15 +27,11 @@ export default function PowerLevelPage() {
 
   const handleNext = () => {
     if (selectedPower === null) {
-      // you can replace with a nicer Alert
       console.warn("Choose a power level first");
       return;
     }
 
-    // write to context: same power level for all selected zones
     setPowerForAllZones(selectedPower);
-
-    // go to frequency step
     router.push("/frequencyPage");
   };
 
