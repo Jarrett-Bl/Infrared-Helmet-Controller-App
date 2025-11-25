@@ -3,6 +3,7 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
+import { ProtocolProvider } from '../context/ProtcolStorageContext';
 import { initDb } from '../databaseLib/DB';
 
 
@@ -30,11 +31,13 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+      <ProtocolProvider> 
       <Stack initialRouteName="newStart" screenOptions={{ headerShown: false }}>
         <Stack.Screen name="newStart" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       </Stack>
       <StatusBar style="auto" />
+      </ProtocolProvider>
     </ThemeProvider>
   );
 }
