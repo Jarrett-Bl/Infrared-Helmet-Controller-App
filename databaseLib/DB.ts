@@ -72,7 +72,7 @@ export async function getProtocols(): Promise<Protocol[]> {
   }>(
     `SELECT id, name, time_min, time_sec, zones_json
      FROM protocols
-     ORDER BY id DESC;`
+     ORDER BY id ASC;`
   );
 
   return rows.map((row) => ({
@@ -93,7 +93,7 @@ export async function getProtocols(): Promise<Protocol[]> {
 //       timeMin: 30,
 //       timeSec: 0,
 //       Zones: {
-//         1: { powerLevel: 50, frequencyHz: 10 },
+//         1: { powerLevel: 0, frequencyHz: 0 },
 //         2: { powerLevel: 50, frequencyHz: 10 },
 //         3: { powerLevel: 50, frequencyHz: 10 },
 //         4: { powerLevel: 50, frequencyHz: 10 },

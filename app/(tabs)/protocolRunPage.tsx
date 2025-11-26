@@ -1,4 +1,5 @@
 import HomeButton from '@/components/ui/HomeButton';
+import { router } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Platform,
@@ -11,6 +12,7 @@ import {
   ViewStyle,
   useWindowDimensions,
 } from "react-native";
+import { useProtocol } from "../../context/ProtcolStorageContext";
 
 // Data structure for protocol settings - built through previous selection screens
 type protocolSettings = {
@@ -24,14 +26,6 @@ type protocolSettings = {
   activeZones: number[];
 };
 
-// Test Sessions  - with sample data for now
-const sessionList: protocolSettings[] = [
-  { id: "1", name: "Memory Boost", timeMin: 30, timeSec: 0, powerLevel: 50, frequencyHz: 10, sessionDurationMin: 15, activeZones: [1,2,3,4] },
-  { id: "2", name: "Relaxation", timeMin: 30, timeSec: 0, powerLevel: 35, frequencyHz: 8,  sessionDurationMin: 20, activeZones: [5,6,7] },
-  { id: "3", name: "Energy Uplift", timeMin: 30, timeSec: 0, powerLevel: 60, frequencyHz: 12, sessionDurationMin: 10, activeZones: [2,8,9,10] },
-  { id: "4", name: "Deep Focus", timeMin: 30, timeSec: 0, powerLevel: 55, frequencyHz: 9,  sessionDurationMin: 25, activeZones: [1,3,11,12] },
-];
-
 
 export type RunSessionScreenProps = {
   helmetValues: protocolSettings;
@@ -44,31 +38,73 @@ export type RunSessionScreenProps = {
   contentStyle?: ViewStyle;
 };
 
-/** ------- Component ------- */
-export default function RunSessionScreen({
-  helmetValues = sessionList[0],
-  onSaveProtocol,
-  onStart,
-  onStop,
-  contentStyle,
-}: RunSessionScreenProps) {
+export default function RunSessionScreen() {
+  const { protocol } = useProtocol();
   const { width } = useWindowDimensions();
   const base = 390;
   const scale = Math.max(0.8, Math.min(1.25, width / base));
   const bottomControlsHeight = Math.round(84 * scale);
   const bottomOffset = Platform.OS === "android" ? 28 : 16;
+
+  // log for sanity
+  useEffect(() => {
+    console.log("ProtocolRunPage protocol:", JSON.stringify(protocol, null, 2));
+  }, [protocol]);
+
+  // Build helmetValues from context protocol (fallback if none)
+  const helmetValues: protocolSettings = useMemo(() => {
+    if (!protocol) {
+      // Fallback if something navigates here without a selected protocol
+      return {
+        id: "local-default",
+        name: "Quick Session",
+        timeMin: 15,
+        timeSec: 0,
+        powerLevel: 50,
+        frequencyHz: 10,
+        sessionDurationMin: 15,
+        activeZones: [1, 2, 3, 4],
+      };
+    }
+
+    const zoneIds = Object.keys(protocol.Zones || {}).map((n) => Number(n));
+    const firstZoneId = zoneIds[0] ?? 1;
+    const firstZoneCfg = protocol.Zones[firstZoneId];
+
+    return {
+      id: (protocol.id ?? -1).toString(),
+      name: protocol.name,
+      timeMin: protocol.timeMin,
+      timeSec: protocol.timeSec,
+      powerLevel: firstZoneCfg?.powerLevel ?? 0,
+      frequencyHz: firstZoneCfg?.frequencyHz ?? 0,
+      sessionDurationMin: protocol.timeMin,
+      activeZones: zoneIds,
+    };
+  }, [protocol]);
+
   /** Timer + countdown logic */
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const initialTotalSeconds = helmetValues.timeMin * 60 + helmetValues.timeSec;
+  const initialTotalSeconds = useMemo(
+    () => helmetValues.timeMin * 60 + helmetValues.timeSec,
+    [helmetValues.timeMin, helmetValues.timeSec]
+  );
+
   const [remaining, setRemaining] = useState<number>(initialTotalSeconds);
   const [running, setRunning] = useState<boolean>(false);
-  // Track whether the session was stopped to display idle
   const [stopped, setStopped] = useState<boolean>(false);
 
+  // Reset timer when helmetValues change (i.e. a different protocol selected)
   useEffect(() => {
-    if (!running) setRemaining(helmetValues.timeMin * 60 + helmetValues.timeSec);
-  }, [helmetValues.timeMin, helmetValues.timeSec]);
+    setRemaining(initialTotalSeconds);
+    setRunning(false);
+    setStopped(false);
+    if (timerRef.current) {
+      clearInterval(timerRef.current as any);
+      timerRef.current = null;
+    }
+  }, [initialTotalSeconds]);
 
   // Cleanup interval on unmount
   useEffect(() => {
@@ -83,14 +119,16 @@ export default function RunSessionScreen({
   const startTimer = useCallback(() => {
     if (running) return; // already running
     if (remaining <= 0) return; // nothing to start
+
     // clear any stray timer
     if (timerRef.current) {
       clearInterval(timerRef.current as any);
       timerRef.current = null;
     }
+
     setRunning(true);
     setStopped(false);
-    onStart?.();
+
     timerRef.current = setInterval(() => {
       setRemaining((r) => {
         if (r <= 1) {
@@ -100,13 +138,12 @@ export default function RunSessionScreen({
             timerRef.current = null;
           }
           setRunning(false);
-          onStop?.();
           return 0;
         }
         return r - 1;
       });
     }, 1000);
-  }, [running, onStart, onStop]);
+  }, [running, remaining]);
 
   // Pause timer logic
   const pauseTimer = useCallback(() => {
@@ -123,32 +160,37 @@ export default function RunSessionScreen({
       clearInterval(timerRef.current as any);
       timerRef.current = null;
     }
-  setRunning(false);
-  setRemaining(initialTotalSeconds);
-  // mark as stopped/idle
-  setStopped(true);
-    onStop?.();
-  }, [initialTotalSeconds, onStop]);
+    setRunning(false);
+    setRemaining(initialTotalSeconds);
+    setStopped(true);
+  }, [initialTotalSeconds]);
 
   /** Derived labels for formatting time and hz */
   const mm = useMemo(() => pad2(Math.floor(remaining / 60)), [remaining]);
   const ss = useMemo(() => pad2(remaining % 60), [remaining]);
-  const freqLabel = useMemo(() => `${helmetValues.frequencyHz} Hz`, [helmetValues.frequencyHz]);
+  const freqLabel = useMemo(
+    () => `${helmetValues.frequencyHz} Hz`,
+    [helmetValues.frequencyHz]
+  );
 
   // UX helpers
   const isComplete = remaining === 0;
   const isAtInitial = remaining === initialTotalSeconds;
-  // primary button text and handler
-  const primaryTitle = running ? "Pause" : isComplete ? "Start" : isAtInitial ? "Start" : "Resume";
+
+  const primaryTitle = running
+    ? "Pause"
+    : isComplete
+    ? "Start"
+    : isAtInitial
+    ? "Start"
+    : "Resume";
   const primaryOnPress = running ? pauseTimer : isComplete ? undefined : startTimer;
 
   // Compute status
   let statusText = "";
   let statusDotStyle = s.statusPaused;
   if (isAtInitial && !running) {
-    // initial state or after stop
     statusDotStyle = s.statusIdle;
-    // Always show "Idle" for both never-started and stopped states
     statusText = "Idle";
   } else if (isComplete) {
     statusText = "Complete";
@@ -165,6 +207,16 @@ export default function RunSessionScreen({
     <SafeAreaView style={s.screen}>
       {/* Header*/}
       <View style={s.topBar}>
+        <Pressable
+          onPress={() => router.push("/protocolPage")}
+          style={[s.iconBtn, { zIndex: 10 }]}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel="Back to protocols"
+        >
+          <Text style={s.iconTxt}>‹</Text>
+        </Pressable>
+
         <Text
           style={s.title}
           accessibilityRole="header"
@@ -172,10 +224,16 @@ export default function RunSessionScreen({
         >
           {helmetValues.name}
         </Text>
-        <HomeButton/>
+
+        <HomeButton />
       </View>
 
-  <View style={[s.content, contentStyle, { paddingBottom: bottomControlsHeight + bottomOffset + 12 }]}>
+      <View
+        style={[
+          s.content,
+          { paddingBottom: bottomControlsHeight + bottomOffset + 12 },
+        ]}
+      >
         {/* Time */}
         <Row>
           <InfoCard value={mm} label="Minutes" testID="card-minutes" />
@@ -192,13 +250,25 @@ export default function RunSessionScreen({
 
         {/* Power & Frequency */}
         <Row>
-          <InfoCard value={helmetValues.powerLevel} label="Power Level" large testID="card-power" />
-          <InfoCard value={freqLabel} label="Frequency" large testID="card-frequency" />
+          <InfoCard
+            value={helmetValues.powerLevel}
+            label="Power Level"
+            large
+            testID="card-power"
+          />
+          <InfoCard
+            value={freqLabel}
+            label="Frequency"
+            large
+            testID="card-frequency"
+          />
         </Row>
 
         {/* Zones */}
         <View style={s.zonesWrap}>
-          <Text style={s.zonesTitle} testID="lbl-zones">Zones Enabled</Text>
+          <Text style={s.zonesTitle} testID="lbl-zones">
+            Zones Enabled
+          </Text>
           <ZoneSquares
             active={helmetValues.activeZones}
             showNumbers
@@ -206,7 +276,7 @@ export default function RunSessionScreen({
           />
         </View>
 
-        {/* Start / Pause / Stop */}
+        {/* Bottom controls */}
         <View
           style={[
             s.bottomRow,
@@ -247,14 +317,23 @@ function InfoCard({
   large?: boolean;
   testID?: string;
 }) {
-  // compute responsive font sizing based on top-level scale
   const { width } = useWindowDimensions();
   const base = 390;
   const scale = Math.max(0.8, Math.min(1.25, width / base));
   return (
     <View style={s.card} testID={testID} accessibilityLabel={`${label} card`}>
-      <Text style={[s.cardValue, large && s.cardValueLg, { fontSize: Math.round((large ? 36 : 34) * scale) }]}>{value}</Text>
-      <Text style={[s.cardLabel, { fontSize: Math.round(14 * scale) }]}>{label}</Text>
+      <Text
+        style={[
+          s.cardValue,
+          large && s.cardValueLg,
+          { fontSize: Math.round((large ? 36 : 34) * scale) },
+        ]}
+      >
+        {value}
+      </Text>
+      <Text style={[s.cardLabel, { fontSize: Math.round(14 * scale) }]}>
+        {label}
+      </Text>
     </View>
   );
 }
@@ -286,7 +365,11 @@ function ZoneSquares({
   const numStyle = { fontSize: Math.round(12 * scale) };
 
   return (
-    <View style={[s.zoneWrap, { justifyContent: "center", flexWrap: "wrap" }, style]} testID={testID} accessibilityLabel="Zone squares">
+    <View
+      style={[s.zoneWrap, { justifyContent: "center", flexWrap: "wrap" }, style]}
+      testID={testID}
+      accessibilityLabel="Zone squares"
+    >
       {Array.from({ length: 12 }, (_, i) => i + 1).map((n) => {
         const isOn = active.includes(n);
         const boxStyle = [
@@ -299,7 +382,13 @@ function ZoneSquares({
           <View key={n} style={{ marginRight: gap, marginBottom: gap }}>
             <View style={boxStyle} testID={`zone-${n}`}>
               {showNumbers && (
-                <Text style={isOn ? [s.zoneNumOn, numStyle] : [s.zoneNumOff, numStyle]}>{n}</Text>
+                <Text
+                  style={
+                    isOn ? [s.zoneNumOn, numStyle] : [s.zoneNumOff, numStyle]
+                  }
+                >
+                  {n}
+                </Text>
               )}
             </View>
           </View>
@@ -326,7 +415,11 @@ function PrimaryButton({
     <Pressable
       onPress={onPress}
       disabled={!onPress}
-      style={({ pressed }) => [s.btnPrimary, (!onPress || pressed) && s.btnPressed, style]}
+      style={({ pressed }) => [
+        s.btnPrimary,
+        (!onPress || pressed) && s.btnPressed,
+        style,
+      ]}
       accessibilityRole="button"
       accessibilityLabel={title}
       testID={testID}
@@ -478,7 +571,6 @@ const s = StyleSheet.create({
   btnPressed: { opacity: 0.9, backgroundColor: BLUE_DARK },
 });
 
-/* Helper */
 function pad2(n: number) {
   return String(Math.max(0, Math.floor(n))).padStart(2, "0");
 }
