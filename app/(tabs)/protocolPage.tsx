@@ -1,11 +1,10 @@
 import HomeButton from '@/components/ui/HomeButton';
 import { router, useFocusEffect } from "expo-router";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useState } from "react";
 import {
   FlatList,
   Platform,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
   useWindowDimensions
@@ -28,12 +27,10 @@ type ProtocolCard = {
 };
 
 export default function ProtocolsPage() {
-  const [query, setQuery] = useState("");
   const [dbProtocols, setDbProtocols] = useState<DbProtocol[]>([]);
   const [cards, setCards] = useState<ProtocolCard[]>([]);
   const { loadProtocol } = useProtocol();
 
-  // Log
   useFocusEffect(
     useCallback(() => {
       let isActive = true;
@@ -71,22 +68,11 @@ export default function ProtocolsPage() {
         }
       })();
 
-      // cleanup if screen loses focus before fetch finishes
       return () => {
         isActive = false;
       };
     }, [])
   );
-
-  const filteredProtocols = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    if (!q) return cards;
-    return cards.filter((p) => {
-      const inName = p.name.toLowerCase().includes(q);
-      const inId = p.id.toLowerCase().includes(q);
-      return inName || inId;
-    });
-  }, [cards, query]);
 
   const onLoad = (card: ProtocolCard) => {
     const full = dbProtocols.find((p) => String(p.id) === card.id);
@@ -96,7 +82,7 @@ export default function ProtocolsPage() {
     }
 
     loadProtocol(full);
-    router.push("/runPage");
+    router.push("/protocolRunPage");
   };
 
   const renderItem = ({ item }: { item: ProtocolCard }) => (
@@ -108,18 +94,8 @@ export default function ProtocolsPage() {
       <Text style={styles.title}>Protocols</Text>
       <HomeButton/>
 
-      <TextInput
-        placeholder="⌕ Search by name or id"
-        placeholderTextColor="#9AA1A9"
-        value={query}
-        onChangeText={setQuery}
-        style={styles.searchInput}
-        autoCapitalize="none"
-        autoCorrect={false}
-      />
-
       <FlatList
-        data={filteredProtocols}
+        data={cards}
         keyExtractor={(p) => p.id}
         renderItem={renderItem}
         ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
@@ -127,8 +103,8 @@ export default function ProtocolsPage() {
         keyboardShouldPersistTaps="handled"
       />
 
-      {filteredProtocols.length === 0 && (
-        <Text style={styles.emptyText}>No protocols match “{query}”.</Text>
+      {cards.length === 0 && (
+        <Text style={styles.emptyText}>No protocols saved yet.</Text>
       )}
     </View>
   );
