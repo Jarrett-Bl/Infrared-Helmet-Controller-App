@@ -15,11 +15,13 @@ export default function titleScreen() {
                 IR Helmet Controller
             </Text>
            
-            <Image
-                source={require("../../assets/images/helmet-icon.png")}
-                style={{ width: 300, height: 300, margin: 60}}
+           <View style= {styles.center}>
+                <Image
+                    source={require("../../assets/images/helmet-icon.png")}
+                    style={{ width: 300, height: 300, margin: 60}}
                 />
-            
+            </View>
+
             <View style={styles.center}>
                 <Pressable
                     onPress={() => router.push("/bluetoothPage1")}
