@@ -1,9 +1,9 @@
 import Slider from "@react-native-community/slider";
 import { StyleSheet, TextInput, View } from "react-native";
 
-export const FREQ_MIN = 5;
-export const FREQ_MAX = 25;
-export const FREQ_STEP = 5;
+export const FREQ_MIN = 0;
+export const FREQ_MAX = 140;
+export const FREQ_STEP = 10;
 
 const dark = {
     button: "#2B3640",
