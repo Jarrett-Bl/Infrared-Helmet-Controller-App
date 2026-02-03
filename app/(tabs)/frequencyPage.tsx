@@ -1,4 +1,4 @@
-import { FREQ_MAX, FREQ_MIN, FREQ_STEP, FrequencySliderInput } from '@/components/FreqPageComponents';
+import { FREQ_DEFAULT, FREQ_MAX, FREQ_MIN, FREQ_STEP, FrequencySliderInput } from '@/components/FreqPageComponents';
 import HomeButton from '@/components/ui/HomeButton';
 import { router } from 'expo-router';
 import { StatusBar } from "expo-status-bar";
@@ -15,11 +15,11 @@ const dark = {
 export default function FrequencyPage() {
   const colors = dark;
   const { setFrequencyForAllZones } = useProtocol();
-  const [frequency, setFrequency] = useState(10);
+  const [frequency, setFrequency] = useState(FREQ_DEFAULT);
 
   const handleNext = () => {
     if (frequency < FREQ_MIN || frequency > FREQ_MAX) {
-      console.warn("Enter a valid frequency in Hz (5–25)");
+      console.warn("Enter a valid frequency in Hz (0–140)");
       return;
     }
     setFrequencyForAllZones(frequency);

@@ -2,6 +2,7 @@ import Slider from "@react-native-community/slider";
 import { StyleSheet, TextInput, View } from "react-native";
 
 export const FREQ_MIN = 0;
+export const FREQ_DEFAULT = 10;
 export const FREQ_MAX = 140;
 export const FREQ_STEP = 10;
 
