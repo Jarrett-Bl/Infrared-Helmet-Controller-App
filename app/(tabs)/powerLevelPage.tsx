@@ -1,4 +1,5 @@
 import HomeButton from '@/components/ui/HomeButton';
+import { AppColors } from '@/constants/theme';
 import { router } from 'expo-router';
 import { StatusBar } from "expo-status-bar";
 import { useState } from "react";
@@ -6,19 +7,8 @@ import { Button, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "re
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useProtocol } from '../../context/ProtcolStorageContext';
 
-const dark = {
-  bg: "#0E1418",
-  button: '#2B3640',
-  text: "#E6EDF3",
-  primary: "#2196F3",
-  buttonText: "#E5E7EB",
-  pressed: "#21262D",
-};
-
 export default function PowerLevelPage() {
-  const colors = dark;
-
-  const { protocol, setPowerForAllZones } = useProtocol();
+  const { setPowerForAllZones } = useProtocol();
   const [selectedPower, setSelectedPower] = useState<number | null>(null);
 
   const handlePress = (value: number) => {
@@ -36,20 +26,20 @@ export default function PowerLevelPage() {
   };
 
   return (
-    <View style={[styles.screen, { backgroundColor: colors.bg }]}>
-      <StatusBar style={"light"} backgroundColor="#000000" />
+    <View style={[styles.screen, { backgroundColor: AppColors.background }]}>
+      <StatusBar style={"light"} backgroundColor={AppColors.background} />
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={true}
       >
-        <Text style={[styles.title, { color: colors.text, marginTop: 16 }]}>
+        <Text style={[styles.title, { color: AppColors.text, marginTop: 16 }]}>
           Power Level
         </Text>
 
         <HomeButton />
 
-        <SafeAreaView style={[styles.container, { backgroundColor: colors.bg }]}>
+        <SafeAreaView style={[styles.container, { backgroundColor: AppColors.background }]}>
           <TouchableOpacity
             style={[
               styles.button,
@@ -119,19 +109,19 @@ const styles = StyleSheet.create({
   button: {
     aspectRatio: 2,
     height: 150,
-    backgroundColor: dark.button,
-    borderColor: dark.buttonText,
+    backgroundColor: AppColors.button,
+    borderColor: AppColors.text,
     justifyContent: 'center',
     alignItems: 'center',
     marginVertical: 30,
     borderRadius: 24,
   },
   selectedButton: {
-    backgroundColor: 'green',
+    backgroundColor: AppColors.success,
   },
   buttonLabel: {
     fontSize: 25,
     fontWeight: "700",
-    color: dark.buttonText,
+    color: AppColors.text,
   },
 });

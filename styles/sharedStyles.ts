@@ -1,14 +1,15 @@
+import { AppColors } from "@/constants/theme";
 import { Platform, StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: "#0E1418",
+    backgroundColor: AppColors.background,
     paddingHorizontal: 20,
     paddingTop: 24,
   },
   title: {
-    color: "white",
+    color: AppColors.text,
     fontSize: 26,
     fontWeight: "800",
     textAlign: "center",
@@ -24,10 +25,10 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  buttonLabel: { fontSize: 24, fontWeight: "bold"},
+  buttonLabel: { fontSize: 24, fontWeight: "bold" },
   searchInput: {
-    backgroundColor: "#252D34",
-    color: "white",
+    backgroundColor: AppColors.card,
+    color: AppColors.text,
     paddingHorizontal: 16,
     paddingVertical: Platform.select({ android: 14, ios: 18 }) as number,
     borderRadius: 14,
@@ -38,19 +39,19 @@ export const styles = StyleSheet.create({
   },
 
   card: {
-    backgroundColor: "#151B20",
+    backgroundColor: AppColors.card,
     borderRadius: 18,
     padding: 16,
     borderWidth: 1,
-    borderColor: "#22303A",
+    borderColor: AppColors.border,
   },
   cardRow: { flexDirection: "row", alignItems: "center" },
   cardColumn: { flexDirection: "column", alignItems: "stretch" },
   cardElevated: { elevation: 2 },
 
   cardBody: { flex: 1 },
-  cardTitle: { color: "white", fontSize: 22, fontWeight: "700", marginBottom: 6 },
-  cardSub: { color: "#AEB7BF", fontSize: 16, marginBottom: 10 },
+  cardTitle: { color: AppColors.text, fontSize: 22, fontWeight: "700", marginBottom: 6 },
+  cardSub: { color: AppColors.textMuted, fontSize: 16, marginBottom: 10 },
 
   zoneGrid: {
     flexDirection: "row",
@@ -60,13 +61,13 @@ export const styles = StyleSheet.create({
     maxWidth: 260,
   },
   zoneCell: { alignItems: "center", justifyContent: "center", borderWidth: 1 },
-  zoneOn: { backgroundColor: "#009520ff", borderColor: "#3C4A56" },
-  zoneOff: { backgroundColor: "#0F1519", borderColor: "#1E2A33" },
-  zoneTextOn: { color: "white", fontWeight: "700" },
-  zoneTextOff: { color: "#6C7A86", fontWeight: "600" },
+  zoneOn: { backgroundColor: AppColors.zoneOn, borderColor: AppColors.zoneBorderOn },
+  zoneOff: { backgroundColor: AppColors.zoneOff, borderColor: AppColors.zoneBorder },
+  zoneTextOn: { color: AppColors.text, fontWeight: "700" },
+  zoneTextOff: { color: AppColors.zoneNumOff, fontWeight: "600" },
 
   loadBtn: {
-    backgroundColor: "#2B3640",
+    backgroundColor: AppColors.button,
     paddingHorizontal: 20,
     paddingVertical: 14,
     borderRadius: 24,
@@ -79,32 +80,31 @@ export const styles = StyleSheet.create({
     alignSelf: "stretch",
     alignItems: "center",
   },
-  loadBtnText: { color: "white", fontSize: 18, fontWeight: "700" },
+  loadBtnText: { color: AppColors.text, fontSize: 18, fontWeight: "700" },
 
   emptyText: {
-    color: "#8B97A1",
+    color: AppColors.textMuted,
     textAlign: "center",
     marginTop: 16,
     fontSize: 14,
   },
-  // different grid from zoneGrid above (full cards in a 2-col wrap)
   gridContainer: { flexDirection: "row", flexWrap: "wrap", justifyContent: "flex-start" },
 
   zoneButton: {
     width: "47%",
-    backgroundColor: "#1A1A1A",
+    backgroundColor: AppColors.card,
     borderRadius: 12,
     padding: 20,
     marginBottom: 15,
     borderWidth: 2,
-    borderColor: "#333333",
+    borderColor: AppColors.border,
     elevation: 3,
-    shadowColor: "#FFFFFF",
+    shadowColor: AppColors.text,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
   },
-  zoneButtonSelected: { borderColor: "#00FF00" },
+  zoneButtonSelected: { borderColor: AppColors.selected },
 
   zoneContent: {
     flexDirection: "row",
@@ -118,17 +118,17 @@ export const styles = StyleSheet.create({
     height: 24,
     borderRadius: 12,
     borderWidth: 2,
-    borderColor: "#FFFFFF",
+    borderColor: AppColors.text,
     alignItems: "center",
     justifyContent: "center",
   },
-  radioSelected: { borderColor: "#00FF00" },
-  radioInner: { width: 12, height: 12, borderRadius: 6, backgroundColor: "#00FF00" },
+  radioSelected: { borderColor: AppColors.selected },
+  radioInner: { width: 12, height: 12, borderRadius: 6, backgroundColor: AppColors.selected },
 
   zoneNumber: {
     fontSize: 24,
     fontWeight: "bold",
-    color: "#FFFFFF",
+    color: AppColors.text,
     flex: 1,
     textAlign: "center",
   },
@@ -136,13 +136,13 @@ export const styles = StyleSheet.create({
   selectedContainer: {
     marginTop: 30,
     padding: 20,
-    backgroundColor: "#1A1A1A",
+    backgroundColor: AppColors.card,
     borderRadius: 12,
     borderWidth: 2,
-    borderColor: "#00FF00",
+    borderColor: AppColors.selected,
     alignItems: "center",
   },
-  selectedText: { fontSize: 18, fontWeight: "600", color: "#00FF00" },
+  selectedText: { fontSize: 18, fontWeight: "600", color: AppColors.selected },
   scrollContainer: { flexGrow: 1, paddingHorizontal: 20, paddingBottom: 20 },
   header: { paddingHorizontal: 20, paddingVertical: 20, alignItems: "center" },
 });

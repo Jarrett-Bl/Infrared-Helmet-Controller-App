@@ -1,12 +1,27 @@
-/**
- * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
- * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
- */
-
-import { Platform } from 'react-native';
+// Colors for the app defined here.
+export const AppColors = {
+  //background: '#0E1418',
+  background: '#000000',
+  card: '#252D34',
+  border: '#22303A',
+  text: '#E6EDF3',
+  textMuted: '#AEB7BF',
+  primary: '#2196F3',
+  primaryPressed: '#1a7bd4',
+  button: '#2B3640',
+  success: '#1CCB4B',
+  selected: '#00FF00',
+  statusIdle: '#E53935',
+  statusPaused: '#FFC857',
+  statusRunning: '#1CCB4B',
+  zoneOn: '#1CCB4B',
+  zoneOff: '#0D1A22',
+  zoneBorder: '#1E2A33',
+  zoneBorderOn: '#2E6B3D',
+  zoneNumOff: '#8BA0AC',
+};
 
 const tintColorLight = '#0a7ea4';
-const tintColorDark = '#fff';
 
 export const Colors = {
   light: {
@@ -18,36 +33,11 @@ export const Colors = {
     tabIconSelected: tintColorLight,
   },
   dark: {
-    text: '#ECEDEE',
-    background: '#151718',
-    tint: tintColorDark,
+    text: AppColors.text,
+    background: AppColors.background,
+    tint: AppColors.primary,
     icon: '#9BA1A6',
     tabIconDefault: '#9BA1A6',
-    tabIconSelected: tintColorDark,
+    tabIconSelected: AppColors.primary,
   },
 };
-
-export const Fonts = Platform.select({
-  ios: {
-    /** iOS `UIFontDescriptorSystemDesignDefault` */
-    sans: 'system-ui',
-    /** iOS `UIFontDescriptorSystemDesignSerif` */
-    serif: 'ui-serif',
-    /** iOS `UIFontDescriptorSystemDesignRounded` */
-    rounded: 'ui-rounded',
-    /** iOS `UIFontDescriptorSystemDesignMonospaced` */
-    mono: 'ui-monospace',
-  },
-  default: {
-    sans: 'normal',
-    serif: 'serif',
-    rounded: 'normal',
-    mono: 'monospace',
-  },
-  web: {
-    sans: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
-    serif: "Georgia, 'Times New Roman', serif",
-    rounded: "'SF Pro Rounded', 'Hiragino Maru Gothic ProN', Meiryo, 'MS PGothic', sans-serif",
-    mono: "SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
-  },
-});

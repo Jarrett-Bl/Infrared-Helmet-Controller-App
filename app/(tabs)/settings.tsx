@@ -1,4 +1,5 @@
 import HomeButton from '@/components/ui/HomeButton';
+import { AppColors } from '@/constants/theme';
 import { StatusBar } from 'expo-status-bar';
 import React from 'react';
 import {
@@ -11,18 +12,26 @@ import {
 } from 'react-native';
 
 const baseColors = {
-  dark: { background:'#0D1117', card:'#161B22', text:'#E6EDF3', textMuted:'#8B949E', border:'#30363D', primary:'#58A6FF', rowPressed:'#21262D' },
-  light:{ background:'#FFFFFF', card:'#F5F7FA', text:'#0B0F16', textMuted:'#6B7280', border:'#E5E7EB', primary:'#2563EB', rowPressed:'#E5E7EB' },
+  dark: {
+    background: AppColors.background,
+    card: AppColors.card,
+    text: AppColors.text,
+    textMuted: AppColors.textMuted,
+    border: AppColors.border,
+    primary: AppColors.primary,
+    rowPressed: AppColors.button,
+  },
+  light: { background: '#FFFFFF', card: '#F5F7FA', text: '#0B0F16', textMuted: '#6B7280', border: '#E5E7EB', primary: '#2563EB', rowPressed: '#E5E7EB' },
 };
-const colorBlindOverrides = { primary:'#EE9900' };
+const colorBlindOverrides = { primary: '#EE9900' };
 
-function makeTheme({ theme, colorBlindMode}) {
+function makeTheme({ theme, colorBlindMode }: { theme: string, colorBlindMode: boolean }) {
   const c = { ...(theme === 'dark' ? baseColors.dark : baseColors.light) };
   if (colorBlindMode) c.primary = colorBlindOverrides.primary;
   return c;
 }
 
-function makeStyles(themeColors: any, fontScale: any) {
+function makeStyles(themeColors: { background: string, card: string, text: string, textMuted: string, border: string, primary: string, rowPressed: string }, fontScale: number) {
   return StyleSheet.create({
     container: { flex: 1, backgroundColor: themeColors.background },
     header: { paddingHorizontal: 16, paddingVertical: 16 },
@@ -50,20 +59,55 @@ function makeStyles(themeColors: any, fontScale: any) {
   });
 }
 
-const SectionHeader = ({ title, s }) => <Text style={s.sectionHeader}>{title}</Text>;
+const SectionHeader = ({ title, s }: { title: string, s: any }) => <Text style={s.sectionHeader}>{title}</Text>;
 
-const SettingsRow = ({ label, icon, onPress, s, themeColors }) => (
-  <Pressable
-    onPress={onPress}
-    style={({ pressed }) => [s.row, { backgroundColor: pressed ? themeColors.rowPressed : themeColors.card }]}
-  >
-    <Text style={s.rowIcon}>{icon}</Text>
-    <Text style={s.rowLabel}>{label}</Text>
-    <Text style={s.rowChevron}>›</Text>
-  </Pressable>
-);
+interface SettingsRowProps {
+  label: string;
+  icon?: string;
+  onPress?: () => void;
+  s: any;
+  themeColors: { background: string; card: string; text: string; textMuted: string; border: string; primary: string; rowPressed: string };
+}
 
-const SettingsToggle = ({ label, icon, value, onChange, s, themeColors }) => (
+const SettingsRow = ({ label, icon, onPress, s, themeColors }: SettingsRowProps) => {
+  const content = (
+    <>
+      {icon != null ? <Text style={s.rowIcon}>{icon}</Text> : null}
+      <Text style={s.rowLabel}>{label}</Text>
+      {onPress != null ? <Text style={s.rowChevron}>›</Text> : null}
+    </>
+  );
+  if (onPress != null) {
+    return (
+      <Pressable
+        onPress={onPress}
+        style={({ pressed }) => [s.row, { backgroundColor: pressed ? themeColors.rowPressed : themeColors.card }]}
+      >
+        {content}
+      </Pressable>
+    );
+  }
+  return <View style={[s.row, { backgroundColor: themeColors.card }]}>{content}</View>;
+};
+
+interface SettingsToggleProps {
+  label: string;
+  icon?: string;
+  value: boolean;
+  onChange: (value: boolean) => void;
+  s: any;
+  themeColors: {
+    background: string;
+    card: string;
+    text: string;
+    textMuted: string;
+    border: string;
+    primary: string;
+    rowPressed: string;
+  };
+}
+
+const SettingsToggle = ({ label, icon, value, onChange, s, themeColors }: SettingsToggleProps) => (
   <View style={[s.row, { backgroundColor: themeColors.card }]}>
     <Text style={s.rowIcon}>{icon}</Text>
     <Text style={s.rowLabel}>{label}</Text>
@@ -76,7 +120,16 @@ const SettingsToggle = ({ label, icon, value, onChange, s, themeColors }) => (
   </View>
 );
 
-const SettingsSlider = ({ label, icon, value, setValue, s, themeColors }) => (
+interface SettingsSliderProps {
+  label: string;
+  icon: string;
+  value: number;
+  setValue: React.Dispatch<React.SetStateAction<number>>;
+  s: any;
+  themeColors: { card: string; border: string; primary: string; textMuted: string };
+}
+
+const SettingsSlider = ({ label, icon, value, setValue, s, themeColors }: SettingsSliderProps) => (
   <View style={[s.row, { backgroundColor: themeColors.card, flexDirection: 'column', alignItems: 'stretch', paddingTop: 16 }]}>
     <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
       <Text style={s.rowIcon}>{icon}</Text>
@@ -106,12 +159,12 @@ export default function SettingsPageMockup() {
     <SafeAreaView style={s.container}>
       <StatusBar style={theme === 'dark' ? 'light' : 'dark'} backgroundColor={themeColors.background} />
       <View style={s.header}><Text style={s.title}>Settings</Text></View>
-      <HomeButton/>
+      <HomeButton />
 
       <ScrollView contentContainerStyle={s.scrollViewContent}>
         <SectionHeader title="Appearance (Local Only)" s={s} />
         <View style={s.card}>
-          <SettingsToggle label="Dark Mode (local)" value={theme === 'dark'} onChange={(v) => setTheme(v ? 'dark' : 'light')} s={s} themeColors={themeColors} icon={undefined}/>
+          <SettingsToggle label="Dark Mode (local)" value={theme === 'dark'} onChange={(v: boolean) => setTheme(v ? 'dark' : 'light')} s={s} themeColors={themeColors} icon={undefined} />
           <SettingsToggle label="Color-blind Accent (local)" value={colorBlindMode} onChange={setColorBlindMode} s={s} themeColors={themeColors} icon={undefined} />
         </View>
 
@@ -122,9 +175,9 @@ export default function SettingsPageMockup() {
 
         <SectionHeader title="About" s={s} />
         <View style={s.card}>
-          <SettingsRow label="Privacy Policy" s={s} themeColors={themeColors} icon={undefined} onPress={undefined} />
-          <SettingsRow label="Terms of Service" s={s} themeColors={themeColors} icon={undefined} onPress={undefined} />
-          <SettingsRow label="App Version" s={s} themeColors={themeColors} icon={undefined} onPress={undefined} />
+          <SettingsRow label="Privacy Policy" s={s} themeColors={themeColors} />
+          <SettingsRow label="Terms of Service" s={s} themeColors={themeColors} />
+          <SettingsRow label="App Version" s={s} themeColors={themeColors} />
         </View>
       </ScrollView>
     </SafeAreaView>
