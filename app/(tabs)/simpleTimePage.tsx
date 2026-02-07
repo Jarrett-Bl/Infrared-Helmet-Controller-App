@@ -1,4 +1,5 @@
 import HomeButton from "@/components/ui/HomeButton";
+import { AppColors } from "@/constants/theme";
 import Slider from "@react-native-community/slider";
 import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
@@ -10,14 +11,14 @@ import { styles } from "../../styles/sharedStyles";
 
 export default function SimpleTimePage() {
   const [minutes, setMinutes] = useState(15);
-  const { setTime} = useProtocol();
+  const { setTime } = useProtocol();
 
   const handleNext = async () => {
-    
+
     setTime(minutes, 0);
 
     try {
-      
+
       router.push("/runPage");
     } catch (e) {
       console.error("Nav Failed", e);
@@ -26,7 +27,7 @@ export default function SimpleTimePage() {
 
   return (
     <SafeAreaView style={styles.screen}>
-      <StatusBar style="light" backgroundColor="#0E1418" />
+      <StatusBar style="light" backgroundColor={AppColors.background} />
       <Text style={styles.title}>Select Your Session Time</Text>
       <HomeButton />
 
@@ -46,9 +47,9 @@ export default function SimpleTimePage() {
             step={1}
             value={minutes}
             onValueChange={(v) => setMinutes(Math.round(v))}
-            minimumTrackTintColor="#AEB7BF"
-            maximumTrackTintColor="#22303A"
-            thumbTintColor="#FFFFFF"
+            minimumTrackTintColor={AppColors.textMuted}
+            maximumTrackTintColor={AppColors.border}
+            thumbTintColor={AppColors.text}
           />
 
           {/* Quick-pick tiles */}
@@ -103,9 +104,9 @@ export default function SimpleTimePage() {
 
 export const options = {
   title: "Time Selection Basic User",
-  headerStyle: { backgroundColor: "#0E1418" },
-  headerTintColor: "#FFFFFF",
-  contentStyle: { backgroundColor: "#0E1418" },
+  headerStyle: { backgroundColor: AppColors.background },
+  headerTintColor: AppColors.text,
+  contentStyle: { backgroundColor: AppColors.background },
 };
 
 const lStyles = StyleSheet.create({
@@ -117,7 +118,7 @@ const lStyles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 8,
   },
-  valueText: { color: "white", fontSize: 18, fontWeight: "700" },
+  valueText: { color: AppColors.text, fontSize: 18, fontWeight: "700" },
   slider: {
     height: 40,
     transform: [{ scaleY: 1.2 }],
@@ -135,20 +136,20 @@ const lStyles = StyleSheet.create({
   },
   tile: {
     flex: 1,
-    backgroundColor: "#1A1A1A",
+    backgroundColor: AppColors.card,
     borderRadius: 14,
     borderWidth: 2,
-    borderColor: "#333333",
+    borderColor: AppColors.border,
     margin: 8,
     alignItems: "center",
     justifyContent: "center",
     elevation: 3,
   },
   tileSelected: {
-    borderColor: "#00FF00",
+    borderColor: AppColors.selected,
   },
   tileText: {
-    color: "white",
+    color: AppColors.text,
     fontSize: 24,
     fontWeight: "700",
     textAlign: "center",

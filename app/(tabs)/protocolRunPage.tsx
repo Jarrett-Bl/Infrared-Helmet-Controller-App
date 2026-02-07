@@ -1,4 +1,5 @@
 import HomeButton from '@/components/ui/HomeButton';
+import { AppColors } from '@/constants/theme';
 import { router } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -180,10 +181,10 @@ export default function RunSessionScreen() {
   const primaryTitle = running
     ? "Pause"
     : isComplete
-    ? "Start"
-    : isAtInitial
-    ? "Start"
-    : "Resume";
+      ? "Start"
+      : isAtInitial
+        ? "Start"
+        : "Resume";
   const primaryOnPress = running ? pauseTimer : isComplete ? undefined : startTimer;
 
   // Compute status
@@ -453,27 +454,11 @@ function SecondaryButton({
   );
 }
 
-//Styles
-const BG = "#0E1418";
-const CARD = "#252D34";
-const CARD_BORDER = "#22303A";
-const TEXT = "#FFFFFF";
-const SUB = "#AEB7BF";
-const BLUE = "#58A6FF";
-const BLUE_DARK = "#3B6FB8";
-const MUTED = "#2B3640";
-const DOT_ON = "#1CCB4B";
-const DOT_OFF = "#0D1A22";
-const DOT_BORDER = "#1E2A33";
-const PAUSED = "#FFC857";
-const IDLE = "#E53935";
-
 const s = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: BG,
+    backgroundColor: AppColors.background,
   },
-
   topBar: {
     flexDirection: "row",
     alignItems: "center",
@@ -490,9 +475,9 @@ const s = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  iconTxt: { color: TEXT, fontSize: 20, fontWeight: "800", opacity: 0.9 },
+  iconTxt: { color: AppColors.text, fontSize: 20, fontWeight: "800", opacity: 0.9 },
   title: {
-    color: TEXT,
+    color: AppColors.text,
     fontSize: 24,
     fontWeight: "800",
     position: "absolute",
@@ -501,58 +486,50 @@ const s = StyleSheet.create({
     textAlign: "center",
     zIndex: 1,
   },
-
   content: { flex: 1, paddingHorizontal: 28, paddingTop: 8 },
-
   row: { flexDirection: "row", gap: 18, marginBottom: 20 },
-
   card: {
     flex: 1,
-    backgroundColor: CARD,
+    backgroundColor: AppColors.card,
     borderRadius: 18,
     paddingVertical: 22,
     paddingHorizontal: 20,
     borderWidth: 1,
-    borderColor: CARD_BORDER,
+    borderColor: AppColors.border,
     alignItems: "center",
   },
-  cardValue: { color: TEXT, fontSize: 34, fontWeight: "800", marginBottom: 8 },
+  cardValue: { color: AppColors.text, fontSize: 34, fontWeight: "800", marginBottom: 8 },
   cardValueLg: { fontSize: 36 },
-  cardLabel: { color: SUB, fontSize: 14, fontWeight: "600" },
-
+  cardLabel: { color: AppColors.textMuted, fontSize: 14, fontWeight: "600" },
   zonesWrap: { marginTop: 14, marginBottom: 26, alignItems: "center", width: "100%" },
-  zonesTitle: { color: TEXT, fontSize: 24, fontWeight: "800", marginBottom: 12, textAlign: "center", width: "100%" },
-
+  zonesTitle: { color: AppColors.text, fontSize: 24, fontWeight: "800", marginBottom: 12, textAlign: "center", width: "100%" },
   zoneWrap: { flexDirection: "row", flexWrap: "wrap", justifyContent: "center" },
   zoneBox: {
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1,
-    borderColor: DOT_BORDER,
+    borderColor: AppColors.zoneBorder,
   },
-  zoneOn: { backgroundColor: DOT_ON, borderColor: "#2E6B3D" },
-  zoneOff: { backgroundColor: DOT_OFF },
-  zoneNumOn: { color: TEXT, fontWeight: "800", fontSize: 14 },
-  zoneNumOff: { color: "#8BA0AC", fontWeight: "700", fontSize: 14 },
-
+  zoneOn: { backgroundColor: AppColors.zoneOn, borderColor: AppColors.zoneBorderOn },
+  zoneOff: { backgroundColor: AppColors.zoneOff },
+  zoneNumOn: { color: AppColors.text, fontWeight: "800", fontSize: 14 },
+  zoneNumOff: { color: AppColors.zoneNumOff, fontWeight: "700", fontSize: 14 },
   statusWrap: { flexDirection: "row", alignItems: "center", marginBottom: 14 },
-  statusDot: { width: 10, height: 10, borderRadius: 6, marginRight: 8, borderWidth: 1, borderColor: DOT_BORDER },
-  statusRunning: { backgroundColor: DOT_ON },
-  statusIdle: { backgroundColor: IDLE },
-  statusPaused: { backgroundColor: PAUSED },
-  statusComplete: { backgroundColor: MUTED },
-  statusText: { color: SUB, fontSize: 16, fontWeight: "700" },
-
+  statusDot: { width: 10, height: 10, borderRadius: 6, marginRight: 8, borderWidth: 1, borderColor: AppColors.zoneBorder },
+  statusRunning: { backgroundColor: AppColors.statusRunning },
+  statusIdle: { backgroundColor: AppColors.statusIdle },
+  statusPaused: { backgroundColor: AppColors.statusPaused },
+  statusComplete: { backgroundColor: AppColors.button },
+  statusText: { color: AppColors.textMuted, fontSize: 16, fontWeight: "700" },
   bottomRow: {
     flexDirection: "row",
     gap: 20,
     marginTop: "auto",
     marginBottom: 22,
   },
-
   btnPrimary: {
     flex: 1,
-    backgroundColor: BLUE,
+    backgroundColor: AppColors.primary,
     borderRadius: 16,
     paddingVertical: 20,
     alignItems: "center",
@@ -560,15 +537,15 @@ const s = StyleSheet.create({
   },
   btnSecondary: {
     flex: 1,
-    backgroundColor: MUTED,
+    backgroundColor: AppColors.button,
     borderRadius: 16,
     paddingVertical: 20,
     alignItems: "center",
     justifyContent: "center",
   },
-  btnPrimaryTxt: { color: TEXT, fontSize: 20, fontWeight: "800" },
-  btnSecondaryTxt: { color: TEXT, fontSize: 20, fontWeight: "800" },
-  btnPressed: { opacity: 0.9, backgroundColor: BLUE_DARK },
+  btnPrimaryTxt: { color: AppColors.text, fontSize: 20, fontWeight: "800" },
+  btnSecondaryTxt: { color: AppColors.text, fontSize: 20, fontWeight: "800" },
+  btnPressed: { opacity: 0.9, backgroundColor: AppColors.primaryPressed },
 });
 
 function pad2(n: number) {

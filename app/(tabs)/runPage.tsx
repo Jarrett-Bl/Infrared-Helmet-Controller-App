@@ -1,4 +1,5 @@
 import HomeButton from "@/components/ui/HomeButton";
+import { AppColors } from "@/constants/theme";
 import React, {
   useCallback,
   useEffect,
@@ -50,7 +51,7 @@ export default function RunPage() {
   }, [protocol]);
 
 
-  
+
   const helmetValues: SessionSettings = useMemo(() => {
     if (!protocol) {
       // Fallback
@@ -82,7 +83,7 @@ export default function RunPage() {
     };
   }, [protocol]);
 
- 
+
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const initialTotalSeconds = helmetValues.timeMin * 60 + helmetValues.timeSec;
@@ -91,7 +92,7 @@ export default function RunPage() {
   const [stopped, setStopped] = useState<boolean>(false);
 
   useEffect(() => {
-    
+
     setRemaining(helmetValues.timeMin * 60 + helmetValues.timeSec);
     setRunning(false);
     setStopped(false);
@@ -167,10 +168,10 @@ export default function RunPage() {
   const primaryTitle = running
     ? "Pause"
     : isComplete
-    ? "Start"
-    : isAtInitial
-    ? "Start"
-    : "Resume";
+      ? "Start"
+      : isAtInitial
+        ? "Start"
+        : "Resume";
   const primaryOnPress = running ? pauseTimer : isComplete ? undefined : startTimer;
 
   let statusText = "";
@@ -202,7 +203,7 @@ export default function RunPage() {
       console.error("Failed to save protocol", e);
       Alert.alert("Error", "Could not save protocol. Please try again.");
     }
-  },[saveProtocol]);
+  }, [saveProtocol]);
 
   return (
     <SafeAreaView style={s.screen}>
@@ -499,24 +500,10 @@ function SecondaryButton({
 }
 
 
-const BG = "#0E1418";
-const CARD = "#252D34";
-const CARD_BORDER = "#22303A";
-const TEXT = "#FFFFFF";
-const SUB = "#AEB7BF";
-const BLUE = "#58A6FF";
-const BLUE_DARK = "#3B6FB8";
-const MUTED = "#2B3640";
-const DOT_ON = "#1CCB4B";
-const DOT_OFF = "#0D1A22";
-const DOT_BORDER = "#1E2A33";
-const PAUSED = "#FFC857";
-const IDLE = "#E53935";
-
 const s = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: BG,
+    backgroundColor: AppColors.background,
   },
   topBar: {
     position: "relative",
@@ -528,7 +515,7 @@ const s = StyleSheet.create({
     marginBottom: 12,
   },
   title: {
-    color: TEXT,
+    color: AppColors.text,
     fontSize: 24,
     fontWeight: "800",
     position: "absolute",
@@ -540,17 +527,17 @@ const s = StyleSheet.create({
   row: { flexDirection: "row", gap: 18, marginBottom: 20 },
   card: {
     flex: 1,
-    backgroundColor: CARD,
+    backgroundColor: AppColors.card,
     borderRadius: 18,
     paddingVertical: 22,
     paddingHorizontal: 20,
     borderWidth: 1,
-    borderColor: CARD_BORDER,
+    borderColor: AppColors.border,
     alignItems: "center",
   },
-  cardValue: { color: TEXT, fontSize: 34, fontWeight: "800", marginBottom: 8 },
+  cardValue: { color: AppColors.text, fontSize: 34, fontWeight: "800", marginBottom: 8 },
   cardValueLg: { fontSize: 36 },
-  cardLabel: { color: SUB, fontSize: 14, fontWeight: "600" },
+  cardLabel: { color: AppColors.textMuted, fontSize: 14, fontWeight: "600" },
   zonesWrap: {
     marginTop: 14,
     marginBottom: 26,
@@ -558,7 +545,7 @@ const s = StyleSheet.create({
     width: "100%",
   },
   zonesTitle: {
-    color: TEXT,
+    color: AppColors.text,
     fontSize: 24,
     fontWeight: "800",
     marginBottom: 12,
@@ -574,12 +561,12 @@ const s = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1,
-    borderColor: DOT_BORDER,
+    borderColor: AppColors.zoneBorder,
   },
-  zoneOn: { backgroundColor: DOT_ON, borderColor: "#2E6B3D" },
-  zoneOff: { backgroundColor: DOT_OFF },
-  zoneNumOn: { color: TEXT, fontWeight: "800", fontSize: 14 },
-  zoneNumOff: { color: "#8BA0AC", fontWeight: "700", fontSize: 14 },
+  zoneOn: { backgroundColor: AppColors.zoneOn, borderColor: AppColors.zoneBorderOn },
+  zoneOff: { backgroundColor: AppColors.zoneOff },
+  zoneNumOn: { color: AppColors.text, fontWeight: "800", fontSize: 14 },
+  zoneNumOff: { color: AppColors.zoneNumOff, fontWeight: "700", fontSize: 14 },
 
   saveBtn: {
     width: "100%",
@@ -587,9 +574,9 @@ const s = StyleSheet.create({
     borderRadius: 16,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: BLUE,
+    backgroundColor: AppColors.primary,
   },
-  saveBtnTxt: { fontSize: 26, color: TEXT, fontWeight: "900" },
+  saveBtnTxt: { fontSize: 26, color: AppColors.text, fontWeight: "900" },
 
   statusWrap: {
     flexDirection: "row",
@@ -602,13 +589,13 @@ const s = StyleSheet.create({
     borderRadius: 6,
     marginRight: 8,
     borderWidth: 1,
-    borderColor: DOT_BORDER,
+    borderColor: AppColors.zoneBorder,
   },
-  statusRunning: { backgroundColor: DOT_ON },
-  statusIdle: { backgroundColor: IDLE },
-  statusPaused: { backgroundColor: PAUSED },
-  statusComplete: { backgroundColor: MUTED },
-  statusText: { color: SUB, fontSize: 16, fontWeight: "700" },
+  statusRunning: { backgroundColor: AppColors.statusRunning },
+  statusIdle: { backgroundColor: AppColors.statusIdle },
+  statusPaused: { backgroundColor: AppColors.statusPaused },
+  statusComplete: { backgroundColor: AppColors.button },
+  statusText: { color: AppColors.textMuted, fontSize: 16, fontWeight: "700" },
 
   bottomRowFixed: {
     flexDirection: "row",
@@ -621,7 +608,7 @@ const s = StyleSheet.create({
   },
   btnPrimary: {
     flex: 1,
-    backgroundColor: BLUE,
+    backgroundColor: AppColors.primary,
     borderRadius: 16,
     paddingVertical: 20,
     alignItems: "center",
@@ -629,15 +616,15 @@ const s = StyleSheet.create({
   },
   btnSecondary: {
     flex: 1,
-    backgroundColor: MUTED,
+    backgroundColor: AppColors.button,
     borderRadius: 16,
     paddingVertical: 20,
     alignItems: "center",
     justifyContent: "center",
   },
-  btnPrimaryTxt: { color: TEXT, fontSize: 20, fontWeight: "800" },
-  btnSecondaryTxt: { color: TEXT, fontSize: 20, fontWeight: "800" },
-  btnPressed: { opacity: 0.9, backgroundColor: BLUE_DARK },
+  btnPrimaryTxt: { color: AppColors.text, fontSize: 20, fontWeight: "800" },
+  btnSecondaryTxt: { color: AppColors.text, fontSize: 20, fontWeight: "800" },
+  btnPressed: { opacity: 0.9, backgroundColor: AppColors.primaryPressed },
 });
 
 function pad2(n: number) {

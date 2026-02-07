@@ -1,3 +1,4 @@
+import { AppColors } from "@/constants/theme";
 import Slider from "@react-native-community/slider";
 import { StyleSheet, TextInput, View } from "react-native";
 
@@ -5,11 +6,6 @@ export const FREQ_MIN = 0;
 export const FREQ_DEFAULT = 10;
 export const FREQ_MAX = 140;
 export const FREQ_STEP = 10;
-
-const dark = {
-    button: "#2B3640",
-    text: "#E6EDF3",
-};
 
 type FrequencySliderInputProps = {
     value: number;
@@ -56,9 +52,9 @@ export function FrequencySliderInput({
                 step={step}
                 value={value}
                 onValueChange={(v) => onChange(Math.round(v))}
-                minimumTrackTintColor="#AEB7BF"
-                maximumTrackTintColor="#22303A"
-                thumbTintColor="#FFFFFF"
+                minimumTrackTintColor={AppColors.textMuted}
+                maximumTrackTintColor={AppColors.border}
+                thumbTintColor={AppColors.text}
             />
         </View>
     );
@@ -74,9 +70,9 @@ const styles = StyleSheet.create({
         marginBottom: 16,
         borderWidth: 1,
         padding: 10,
-        backgroundColor: dark.button,
+        backgroundColor: AppColors.button,
         borderRadius: 10,
-        color: dark.text,
+        color: AppColors.text,
     },
     slider: {
         width: "100%",

@@ -1,4 +1,5 @@
-﻿import HomeButton from '@/components/ui/HomeButton';
+import HomeButton from '@/components/ui/HomeButton';
+import { AppColors } from '@/constants/theme';
 import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
@@ -8,12 +9,12 @@ import { styles } from "../../styles/sharedStyles";
 export default function BlueToothConnectionPage2() {
   return (
     <SafeAreaView style={styles.screen}>
-      <StatusBar style="light" backgroundColor="#0E1418" />
+      <StatusBar style="light" backgroundColor={AppColors.background} />
 
       <Text style={[styles.title, { marginTop: 8 }]}>
         Press Start to begin designing a protocol
       </Text>
-      <HomeButton/>
+      <HomeButton />
 
       <View style={styles.center}>
         <Pressable
@@ -39,16 +40,16 @@ const lStyles = StyleSheet.create({
     borderRadius: 999,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#2196F3",   
+    backgroundColor: AppColors.primary,
     borderWidth: 1,
-    borderColor: "#22303A",       
+    borderColor: AppColors.border,
     ...Platform.select({
       android: { elevation: 2 },
       ios: { shadowColor: "#000", shadowOpacity: 0.2, shadowRadius: 6, shadowOffset: { width: 0, height: 3 } },
     }),
   },
   startLabel: {
-    color: "white",
+    color: AppColors.text,
     fontSize: 24,
     fontWeight: "800",
     letterSpacing: 0.3,
