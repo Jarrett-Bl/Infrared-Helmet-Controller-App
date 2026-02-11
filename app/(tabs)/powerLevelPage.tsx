@@ -1,87 +1,78 @@
+import { PowerSliderInput, POWER_DEFAULT, POWER_MAX, POWER_MIN, POWER_STEP } from '@/components/FreqPageComponents';
 import HomeButton from '@/components/ui/HomeButton';
 import { AppColors } from '@/constants/theme';
 import { router } from 'expo-router';
 import { StatusBar } from "expo-status-bar";
 import { useState } from "react";
-import { Button, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { Button, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useProtocol } from '../../context/ProtcolStorageContext';
 
 export default function PowerLevelPage() {
   const { setPowerForAllZones } = useProtocol();
-  const [selectedPower, setSelectedPower] = useState<number | null>(null);
-
-  const handlePress = (value: number) => {
-    setSelectedPower(value);
-  };
+  const [power, setPower] = useState(POWER_DEFAULT);
 
   const handleNext = () => {
-    if (selectedPower === null) {
-      console.warn("Choose a power level first");
+    if (power < POWER_MIN || power > POWER_MAX) {
+      console.warn("Enter a valid power level (25–100%)");
       return;
     }
-
-    setPowerForAllZones(selectedPower);
+    setPowerForAllZones(power);
     router.push("/frequencyPage");
   };
 
   return (
     <View style={[styles.screen, { backgroundColor: AppColors.background }]}>
-      <StatusBar style={"light"} backgroundColor={AppColors.background} />
+      <StatusBar style="light" backgroundColor={AppColors.background} />
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={true}
       >
         <Text style={[styles.title, { color: AppColors.text, marginTop: 16 }]}>
-          Power Level
+          Power Level (%)
         </Text>
 
         <HomeButton />
 
-        <SafeAreaView style={[styles.container, { backgroundColor: AppColors.background }]}>
-          <TouchableOpacity
-            style={[
-              styles.button,
-              selectedPower === 25 && styles.selectedButton,
-            ]}
-            onPress={() => handlePress(25)}
-          >
-            <Text style={styles.buttonLabel}>25%</Text>
-          </TouchableOpacity>
+        <PowerSliderInput
+          value={power}
+          onChange={setPower}
+          min={POWER_MIN}
+          max={POWER_MAX}
+          step={POWER_STEP}
+        />
 
-          <TouchableOpacity
-            style={[
-              styles.button,
-              selectedPower === 50 && styles.selectedButton,
-            ]}
-            onPress={() => handlePress(50)}
-          >
-            <Text style={styles.buttonLabel}>50%</Text>
-          </TouchableOpacity>
+        <View style={styles.grid}>
+          <View style={styles.col}>
+            <Pressable
+              onPress={() => setPower(25)}
+              style={[styles.tile, power === 25 && styles.tileSelected]}
+            >
+              <Text style={styles.tileText}>25%</Text>
+            </Pressable>
+            <Pressable
+              onPress={() => setPower(75)}
+              style={[styles.tile, power === 75 && styles.tileSelected]}
+            >
+              <Text style={styles.tileText}>75%</Text>
+            </Pressable>
+          </View>
+          <View style={styles.col}>
+            <Pressable
+              onPress={() => setPower(50)}
+              style={[styles.tile, power === 50 && styles.tileSelected]}
+            >
+              <Text style={styles.tileText}>50%</Text>
+            </Pressable>
+            <Pressable
+              onPress={() => setPower(100)}
+              style={[styles.tile, power === 100 && styles.tileSelected]}
+            >
+              <Text style={styles.tileText}>100%</Text>
+            </Pressable>
+          </View>
+        </View>
 
-          <TouchableOpacity
-            style={[
-              styles.button,
-              selectedPower === 75 && styles.selectedButton,
-            ]}
-            onPress={() => handlePress(75)}
-          >
-            <Text style={styles.buttonLabel}>75%</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[
-              styles.button,
-              selectedPower === 100 && styles.selectedButton,
-            ]}
-            onPress={() => handlePress(100)}
-          >
-            <Text style={styles.buttonLabel}>100%</Text>
-          </TouchableOpacity>
-        </SafeAreaView>
-
-        {/* Next button */}
         <View style={styles.nextButtonWrap}>
           <Button title="Next" onPress={handleNext} />
         </View>
@@ -95,33 +86,34 @@ const styles = StyleSheet.create({
   scrollView: { flex: 1 },
   scrollContent: { paddingBottom: 24 },
   title: { fontSize: 24, fontWeight: "600", textAlign: "center", padding: 10 },
-  header: { fontSize: 17, fontWeight: "200", textAlign: "center", marginBottom: 220 },
-  center: { flex: 1, alignItems: "center", justifyContent: "center" },
-  container: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    padding: 10,
-    paddingBottom: 24,
+  grid: {
+    flexDirection: "row",
+    marginTop: 8,
+    marginBottom: 16,
+  },
+  col: {
+    flex: 1,
+    minHeight: 0,
+  },
+  tile: {
+    flex: 1,
+    backgroundColor: AppColors.card,
+    borderRadius: 14,
+    borderWidth: 2,
+    borderColor: AppColors.border,
+    margin: 8,
+    alignItems: "center",
+    justifyContent: "center",
+    elevation: 3,
+  },
+  tileSelected: {
+    borderColor: AppColors.selected,
+  },
+  tileText: {
+    color: AppColors.text,
+    fontSize: 24,
+    fontWeight: "700",
+    textAlign: "center",
   },
   nextButtonWrap: { paddingHorizontal: 16, marginBottom: 24 },
-  button: {
-    aspectRatio: 2,
-    height: 150,
-    backgroundColor: AppColors.button,
-    borderColor: AppColors.text,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginVertical: 30,
-    borderRadius: 24,
-  },
-  selectedButton: {
-    backgroundColor: AppColors.success,
-  },
-  buttonLabel: {
-    fontSize: 25,
-    fontWeight: "700",
-    color: AppColors.text,
-  },
 });
