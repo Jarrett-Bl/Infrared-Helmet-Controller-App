@@ -60,6 +60,58 @@ export function FrequencySliderInput({
     );
 }
 
+export const POWER_MIN = 25;
+export const POWER_DEFAULT = 50;
+export const POWER_MAX = 100;
+export const POWER_STEP = 25;
+
+type PowerSliderInputProps = {
+  value: number;
+  onChange: (value: number) => void;
+  min?: number;
+  max?: number;
+  step?: number;
+};
+
+export function PowerSliderInput({
+  value,
+  onChange,
+  min = POWER_MIN,
+  max = POWER_MAX,
+  step = POWER_STEP,
+}: PowerSliderInputProps) {
+  const handleTextChange = (text: string) => {
+    const parsed = Number(text);
+    if (!Number.isFinite(parsed)) return;
+    const snapped = snapToStep(parsed, min, max, step);
+    onChange(snapped);
+  };
+
+  return (
+    <View style={styles.container}>
+      <TextInput
+        style={styles.input}
+        value={String(value)}
+        onChangeText={handleTextChange}
+        keyboardType="numeric"
+        placeholder={`${min} – ${max} %`}
+        placeholderTextColor="gray"
+      />
+      <Slider
+        style={styles.slider}
+        minimumValue={min}
+        maximumValue={max}
+        step={step}
+        value={value}
+        onValueChange={(v) => onChange(Math.round(v))}
+        minimumTrackTintColor={AppColors.textMuted}
+        maximumTrackTintColor={AppColors.border}
+        thumbTintColor={AppColors.text}
+      />
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
     container: {
         paddingHorizontal: 16,
