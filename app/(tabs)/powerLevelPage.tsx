@@ -1,5 +1,4 @@
-import { PowerSliderInput, POWER_DEFAULT, POWER_MAX, POWER_MIN, POWER_STEP } from '@/components/FreqPageComponents';
-import HomeButton from '@/components/ui/HomeButton';
+import { POWER_DEFAULT, POWER_MAX, POWER_MIN, POWER_STEP, PowerSliderInput } from '@/components/FreqPageComponents';
 import { AppColors } from '@/constants/theme';
 import { router } from 'expo-router';
 import { StatusBar } from "expo-status-bar";
@@ -32,7 +31,7 @@ export default function PowerLevelPage() {
           Power Level (%)
         </Text>
 
-        <HomeButton />
+        
 
         <PowerSliderInput
           value={power}

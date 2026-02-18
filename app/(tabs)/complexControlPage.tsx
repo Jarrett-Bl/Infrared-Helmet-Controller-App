@@ -1,4 +1,3 @@
-import HomeButton from '@/components/ui/HomeButton';
 import { AppColors } from '@/constants/theme';
 import { Link, useLocalSearchParams } from 'expo-router';
 import { StatusBar } from "expo-status-bar";
@@ -25,7 +24,7 @@ export default function ComplexControlPage() {
             <Text style={[styles.title, { color: zoneGroup ? String(zoneGroup.zoneGroup) : AppColors.text, marginTop: 16 }]}>
                 Power Level
             </Text>
-            <HomeButton />
+            
             <StatusBar style={"light"} backgroundColor={AppColors.background} />
             <View style={[styles.container, { backgroundColor: AppColors.background }]}>
                 <TouchableOpacity

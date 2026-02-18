@@ -1,4 +1,3 @@
-import HomeButton from '@/components/ui/HomeButton';
 import { AppColors } from '@/constants/theme';
 import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
@@ -14,7 +13,7 @@ export default function BlueToothConnectionPage2() {
       <Text style={[styles.title, { marginTop: 8 }]}>
         Press Start to begin designing a protocol
       </Text>
-      <HomeButton />
+      
 
       <View style={styles.center}>
         <Pressable

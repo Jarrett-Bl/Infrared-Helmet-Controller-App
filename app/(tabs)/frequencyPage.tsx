@@ -1,5 +1,4 @@
 import { FREQ_DEFAULT, FREQ_MAX, FREQ_MIN, FREQ_STEP, FrequencySliderInput } from '@/components/FreqPageComponents';
-import HomeButton from '@/components/ui/HomeButton';
 import { AppColors } from '@/constants/theme';
 import { router } from 'expo-router';
 import { StatusBar } from "expo-status-bar";
@@ -32,7 +31,7 @@ export default function FrequencyPage() {
           Frequency (Hz)
         </Text>
 
-        <HomeButton />
+        
 
         <FrequencySliderInput
           value={frequency}
