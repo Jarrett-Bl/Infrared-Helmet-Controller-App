@@ -1,4 +1,3 @@
-import HomeButton from '@/components/ui/HomeButton';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useState } from 'react';
@@ -129,9 +128,6 @@ export default function ComplexZoneSelectionPage() {
         <Text style={styles.title}>Zone Selection</Text>
       </View>
 
-      <HomeButton
-        onPress={() => console.log('Navigating from Zone Selection to Home')}
-      />
 
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         {/* Zone Grid */}

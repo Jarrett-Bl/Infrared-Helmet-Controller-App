@@ -1,4 +1,3 @@
-import HomeButton from "@/components/ui/HomeButton";
 import { AppColors } from "@/constants/theme";
 import React, {
   useCallback,
@@ -212,7 +211,7 @@ export default function RunPage() {
         <Text style={s.title} accessibilityRole="header" testID="hdr-session">
           Your Session
         </Text>
-        <HomeButton />
+        
       </View>
 
       <ScrollView
