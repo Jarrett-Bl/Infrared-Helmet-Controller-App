@@ -33,7 +33,7 @@ export default function FunctionsScreen() {
 
   const handleNext = () => {
     setZonesFromSelection(selectedZones);
-    router.push("/powerLevelPage");
+    router.push("/frequencyPage");
   };
 
   const isSelected = (zoneNumber: number): boolean =>
