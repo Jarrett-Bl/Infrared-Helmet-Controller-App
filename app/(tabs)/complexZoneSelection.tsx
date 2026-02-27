@@ -216,7 +216,7 @@ export default function ComplexZoneSelectionPage() {
       <Pressable
         onPress={() =>
           router.push({
-            pathname: '/powerLevelPage'
+            pathname: '/frequencyPage'
           })
         }
         style={({ pressed }) => [
