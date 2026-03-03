@@ -1,4 +1,3 @@
-import HomeButton from '@/components/ui/HomeButton';
 import { AppColors } from '@/constants/theme';
 import { router } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -226,7 +225,7 @@ export default function RunSessionScreen() {
           {helmetValues.name}
         </Text>
 
-        <HomeButton />
+        
       </View>
 
       <View

@@ -1,4 +1,3 @@
-import HomeButton from '@/components/ui/HomeButton';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useState } from 'react';
@@ -34,7 +33,7 @@ export default function FunctionsScreen() {
 
   const handleNext = () => {
     setZonesFromSelection(selectedZones);
-    router.push("/powerLevelPage");
+    router.push("/frequencyPage");
   };
 
   const isSelected = (zoneNumber: number): boolean =>
@@ -50,9 +49,6 @@ export default function FunctionsScreen() {
         <Text style={styles.title}>Zone Selection</Text>
       </View>
 
-      <HomeButton
-        onPress={() => console.log('Navigating from Zone Selection to Home')}
-      />
 
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         {/* Zone Grid */}

@@ -1,4 +1,3 @@
-import HomeButton from '@/components/ui/HomeButton';
 import { AppColors } from '@/constants/theme';
 import { Link } from 'expo-router';
 import { StatusBar } from "expo-status-bar";
@@ -24,7 +23,7 @@ export default function BlueToothConnectionPage1() {
       <Text style={[styles.title, { color: AppColors.text, marginTop: 16 }]}>
         Pair your device
       </Text>
-      <HomeButton />
+      
       <Text style={[styles.header, { color: AppColors.text, marginTop: 30 }]}>
         To begin, ensure your device is turned on and within range.
       </Text>

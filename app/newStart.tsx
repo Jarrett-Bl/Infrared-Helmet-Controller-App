@@ -12,34 +12,25 @@ import {
 
 
 export default function NewStartScreen() {
-  
-  const handleUserMode = () => {
-    console.log('User mode selected');
-    // Navigate to main app (tabs)
-    router.push('/(tabs)/homeScreen');
-  };
 
-  const handleAdminMode = () => {
-    console.log('Admin mode selected');
-    // Navigate to admin interface or settings
-    router.push('/pinPage');
+  const handleUserMode = () => {
+    router.push('/(tabs)/homeScreen');
   };
 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar style="light" />
-      
+
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.title}>Welcome User</Text>
-        <Text style={styles.subtitle}>Select Mode</Text>
       </View>
 
       {/* Mode Selection Cards */}
       <View style={styles.cardContainer}>
-        
+
         {/* User Mode Card */}
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.modeCard}
           onPress={handleUserMode}
           activeOpacity={0.8}
@@ -53,18 +44,8 @@ export default function NewStartScreen() {
           </Text>
         </TouchableOpacity>
 
-        {/* Admin Mode Card */}
-        <TouchableOpacity 
-          style={styles.modeCard}
-          onPress={handleAdminMode}
-          activeOpacity={0.4}
-        >
-          <Text style={styles.modeTitle}>Admin Login</Text>
-          <Text style={styles.modeDescription}>
-            Advanced settings, device management, and system configuration
-          </Text>
-        </TouchableOpacity>
-        
+
+
       </View>
 
     </SafeAreaView>

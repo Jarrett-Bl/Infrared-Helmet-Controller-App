@@ -1,11 +1,11 @@
 import { FREQ_DEFAULT, FREQ_MAX, FREQ_MIN, FREQ_STEP, FrequencySliderInput } from '@/components/FreqPageComponents';
-import HomeButton from '@/components/ui/HomeButton';
 import { AppColors } from '@/constants/theme';
 import { router } from 'expo-router';
-import { StatusBar } from "expo-status-bar";
-import { useState } from "react";
-import { Button, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { StatusBar } from 'expo-status-bar';
+import { useState } from 'react';
+import { Button, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useProtocol } from '../../context/ProtcolStorageContext';
+import PowerLevelSection from '@/components/powerLevelComponent';
 
 export default function FrequencyPage() {
   const { setFrequencyForAllZones } = useProtocol();
@@ -28,11 +28,13 @@ export default function FrequencyPage() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={true}
       >
+        <PowerLevelSection />
+
         <Text style={[styles.title, { color: AppColors.text, marginTop: 16 }]}>
           Frequency (Hz)
         </Text>
 
-        <HomeButton />
+        
 
         <FrequencySliderInput
           value={frequency}
@@ -78,6 +80,7 @@ export default function FrequencyPage() {
         </View>
       </ScrollView>
     </View>
+    
   );
 }
 
