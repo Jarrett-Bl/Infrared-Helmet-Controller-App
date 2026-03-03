@@ -5,23 +5,20 @@ import { StatusBar } from "expo-status-bar";
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useProtocol } from '../../context/ProtcolStorageContext';
+import { useProtocol } from "../../context/ProtcolStorageContext";
 import { styles } from "../../styles/sharedStyles";
 
 export default function SimpleTimePage() {
   const [minutes, setMinutes] = useState(15);
-  const { setTime } = useProtocol();
+  const { protocol, initProtocol, setTime } = useProtocol();
 
-  const handleNext = async () => {
+  const handleNext = () => {
+    if (!protocol) {
+      initProtocol(); // ensure protocol exists for complex flow
+    }
 
     setTime(minutes, 0);
-
-    try {
-
-      router.push("/runPage");
-    } catch (e) {
-      console.error("Nav Failed", e);
-    }
+    router.push("/runPage");
   };
 
   return (
