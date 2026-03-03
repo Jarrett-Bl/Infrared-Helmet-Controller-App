@@ -1,9 +1,4 @@
-import {
-  createContext,
-  ReactNode,
-  useContext,
-  useState,
-} from "react";
+import { createContext, ReactNode, useContext, useState } from "react";
 import type { Protocol, ZoneConfig } from "../databaseLib/DB";
 import { storeProtocol } from "../databaseLib/DB";
 
@@ -11,15 +6,16 @@ type ProtocolContextValue = {
   protocol: Protocol | null;
   initProtocol: () => void;
   setZonesFromSelection: (zoneIds: number[]) => void;
+  setZoneConfigForZones: (zoneIds: number[], cfg: ZoneConfig) => void;
   setPowerForAllZones: (powerLevel: number) => void;
   setFrequencyForAllZones: (frequencyHz: number) => void;
   setTime: (timeMin: number, timeSec: number) => void;
   saveProtocol: () => Promise<number>;
-  loadProtocol: (p: Protocol) => void; 
+  loadProtocol: (p: Protocol) => void;
 };
 
 const ProtocolStorageContext = createContext<ProtocolContextValue | undefined>(
-  undefined
+  undefined,
 );
 
 export function ProtocolProvider({ children }: { children: ReactNode }) {
@@ -37,9 +33,9 @@ export function ProtocolProvider({ children }: { children: ReactNode }) {
     });
   };
 
-  const ensureBaseProtocol = (): Protocol => {
+  const ensureBaseProtocol = (p: Protocol | null): Protocol => {
     return (
-      protocol ?? {
+      p ?? {
         name: `Protocol-${Math.random().toString(36).slice(2, 6)}`,
         timeMin: 0,
         timeSec: 0,
@@ -50,15 +46,28 @@ export function ProtocolProvider({ children }: { children: ReactNode }) {
 
   const setZonesFromSelection = (zoneIds: number[]) => {
     setProtocol((prev) => {
-      const base = prev ?? ensureBaseProtocol();
-      const newZones: Record<number, ZoneConfig> = {};
+      const base = ensureBaseProtocol(prev);
+      const nextZones: Record<number, ZoneConfig> = { ...(base.Zones ?? {}) };
 
       zoneIds.forEach((id) => {
-        const existing = base.Zones[id];
-        newZones[id] = existing ?? { powerLevel: 0, frequencyHz: 0 };
+        nextZones[id] = nextZones[id] ?? { powerLevel: 0, frequencyHz: 0 };
       });
 
-      return { ...base, Zones: newZones };
+      return { ...base, Zones: nextZones };
+    });
+  };
+
+  const setZoneConfigForZones = (zoneIds: number[], cfg: ZoneConfig) => {
+    setProtocol((prev) => {
+      const base = ensureBaseProtocol(prev);
+      const nextZones: Record<number, ZoneConfig> = { ...(base.Zones ?? {}) };
+
+      zoneIds.forEach((id) => {
+        const existing = nextZones[id] ?? { powerLevel: 0, frequencyHz: 0 };
+        nextZones[id] = { ...existing, ...cfg };
+      });
+
+      return { ...base, Zones: nextZones };
     });
   };
 
@@ -118,6 +127,7 @@ export function ProtocolProvider({ children }: { children: ReactNode }) {
         protocol,
         initProtocol,
         setZonesFromSelection,
+        setZoneConfigForZones,
         setPowerForAllZones,
         setFrequencyForAllZones,
         setTime,
