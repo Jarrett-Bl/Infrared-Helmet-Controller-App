@@ -22,6 +22,13 @@ import {
 import { useProtocol } from '../../context/ProtcolStorageContext';
 
 
+type ZoneGroup = {
+  powerLevel: number;
+  frequencyHz: number;
+  zones: number[];
+};
+
+
 type SessionSettings = {
   id: string;
   name: string;
@@ -31,6 +38,7 @@ type SessionSettings = {
   frequencyHz: number;
   sessionDurationMin: number;
   activeZones: number[];
+  zoneGroups: ZoneGroup[];
 };
 
 export default function RunPage() {
@@ -50,10 +58,8 @@ export default function RunPage() {
   }, [protocol]);
 
 
-
   const helmetValues: SessionSettings = useMemo(() => {
     if (!protocol) {
-      // Fallback
       return {
         id: "local-default",
         name: "Quick Session",
@@ -63,12 +69,25 @@ export default function RunPage() {
         frequencyHz: 10,
         sessionDurationMin: 15,
         activeZones: [1, 2, 3, 4],
+        zoneGroups: [{ powerLevel: 50, frequencyHz: 10, zones: [1, 2, 3, 4] }],
       };
     }
 
     const zoneIds = Object.keys(protocol.Zones).map((n) => Number(n));
-    const firstZoneId = zoneIds[0] ?? 1;
-    const firstZoneCfg = protocol.Zones[firstZoneId];
+
+    // group zones by identical power/frequency config
+    const groupsMap: Record<string, ZoneGroup> = {};
+    Object.entries(protocol.Zones).forEach(([idString, config]) => {
+      const id = Number(idString);
+      const key = `${config.powerLevel}_${config.frequencyHz}`;
+      if (!groupsMap[key]) {
+        groupsMap[key] = { powerLevel: config.powerLevel, frequencyHz: config.frequencyHz, zones: [] };
+      }
+      groupsMap[key].zones.push(id);
+    });
+    const zoneGroups = Object.values(groupsMap);
+
+    const firstZoneCfg = zoneGroups[0] || { powerLevel: 0, frequencyHz: 0, zones: [] };
 
     return {
       id: (protocol.id ?? -1).toString(),
@@ -78,7 +97,8 @@ export default function RunPage() {
       powerLevel: firstZoneCfg?.powerLevel ?? 0,
       frequencyHz: firstZoneCfg?.frequencyHz ?? 0,
       sessionDurationMin: protocol.timeMin, // you can change this if you want for per zone
-      activeZones: zoneIds
+      activeZones: zoneIds,
+      zoneGroups,
     };
   }, [protocol]);
 
@@ -156,10 +176,6 @@ export default function RunPage() {
 
   const mm = useMemo(() => pad2(Math.floor(remaining / 60)), [remaining]);
   const ss = useMemo(() => pad2(remaining % 60), [remaining]);
-  const freqLabel = useMemo(
-    () => `${helmetValues.frequencyHz} Hz`,
-    [helmetValues.frequencyHz]
-  );
 
   const isComplete = remaining === 0;
   const isAtInitial = remaining === initialTotalSeconds;
@@ -237,20 +253,39 @@ export default function RunPage() {
         </View>
 
         {/* Power & Frequency */}
-        <Row>
-          <InfoCard
-            value={helmetValues.powerLevel}
-            label="Power Level"
-            large
-            testID="card-power"
-          />
-          <InfoCard
-            value={freqLabel}
-            label="Frequency"
-            large
-            testID="card-frequency"
-          />
-        </Row>
+        {/* if there are multiple zone groups we render a row for each, otherwise
+            the original single‑card layout is preserved */}
+        {helmetValues.zoneGroups.map((g, idx) => (
+          <View key={idx}>
+            <Row>
+              <InfoCard
+                value={g.powerLevel}
+                label={
+                  helmetValues.zoneGroups.length > 1
+                    ? `Power (group ${idx + 1})`
+                    : "Power Level"
+                }
+                large
+                testID={`card-power-${idx}`}
+              />
+              <InfoCard
+                value={`${g.frequencyHz} Hz`}
+                label={
+                  helmetValues.zoneGroups.length > 1
+                    ? `Freq (group ${idx + 1})`
+                    : "Frequency"
+                }
+                large
+                testID={`card-frequency-${idx}`}
+              />
+            </Row>
+            {helmetValues.zoneGroups.length > 1 && (
+              <Text style={s.groupZones} testID={`group-zones-${idx}`}>
+                Zones: {g.zones.sort((a, b) => a - b).join(", ")}
+              </Text>
+            )}
+          </View>
+        ))}
 
         {/* Zones */}
         <View style={s.zonesWrap}>
@@ -595,6 +630,7 @@ const s = StyleSheet.create({
   statusPaused: { backgroundColor: AppColors.statusPaused },
   statusComplete: { backgroundColor: AppColors.button },
   statusText: { color: AppColors.textMuted, fontSize: 16, fontWeight: "700" },
+  groupZones: { color: AppColors.text, fontSize: 14, marginBottom: 12, textAlign: "center" },
 
   bottomRowFixed: {
     flexDirection: "row",
