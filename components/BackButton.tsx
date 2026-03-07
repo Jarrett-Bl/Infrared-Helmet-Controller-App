@@ -1,28 +1,24 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { Pressable, StyleSheet, Text } from 'react-native';
+import { Pressable, StyleSheet, Text, ViewStyle } from 'react-native';
+import { styles } from "../styles/sharedStyles";
 
-const BackButton = () => {
-  const router = useRouter();
-
-  return (
-    <Pressable onPress={() => router.back()} style={styles.button}>
-      <Text style={styles.text}>&larr; Back</Text>
-    </Pressable>
-  );
-};
-
-const styles = StyleSheet.create({
+const buttonStyles = StyleSheet.create({
   button: {
     paddingVertical: 8,
     paddingHorizontal: 12,
-    backgroundColor: '#f0f0f0',
-    borderRadius: 8,
-    alignSelf: 'flex-start',
-    margin: 10,
-  },
-  text: {
-    fontSize: 16,
   },
 });
+
+const BackButton = ({ style, size = 28, color = 'lightblue'}: { style?: ViewStyle; size?: number; color?: string }) => {
+  const router = useRouter();
+
+  return (
+    <Pressable onPress={() => router.back()} style={[styles.button, style]}> 
+        <Ionicons name="arrow-back" size={size} color={color} />
+      <Text style={buttonStyles.button}>&larr; Back</Text>
+    </Pressable>
+  );
+};
 
 export default BackButton;

@@ -1,3 +1,4 @@
+import BackButton from '@/components/BackButton';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useState } from 'react';
@@ -43,7 +44,7 @@ export default function FunctionsScreen() {
   return (
     <SafeAreaView style={styles.screen}>
       <StatusBar style="light" />
-
+      <BackButton/>
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.title}>Zone Selection</Text>

@@ -1,3 +1,4 @@
+import BackButton from '@/components/BackButton';
 import { POWER_DEFAULT, POWER_MAX, POWER_MIN, POWER_STEP, PowerSliderInput } from '@/components/FreqPageComponents';
 import { AppColors } from '@/constants/theme';
 import { router } from 'expo-router';
@@ -26,7 +27,8 @@ export default function PowerLevelPage() {
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={true}
-      >
+      > 
+      <BackButton />
         <Text style={[styles.title, { color: AppColors.text, marginTop: 16 }]}>
           Power Level (%)
         </Text>

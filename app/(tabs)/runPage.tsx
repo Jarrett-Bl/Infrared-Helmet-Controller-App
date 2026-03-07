@@ -1,3 +1,4 @@
+import BackButton from "@/components/BackButton";
 import { AppColors } from "@/constants/theme";
 import React, {
   useCallback,
@@ -20,7 +21,6 @@ import {
   useWindowDimensions,
 } from "react-native";
 import { useProtocol } from '../../context/ProtcolStorageContext';
-
 
 type SessionSettings = {
   id: string;
@@ -206,6 +206,7 @@ export default function RunPage() {
 
   return (
     <SafeAreaView style={s.screen}>
+      <BackButton />
       {/* Header */}
       <View style={s.topBar}>
         <Text style={s.title} accessibilityRole="header" testID="hdr-session">

@@ -1,3 +1,4 @@
+import BackButton from '@/components/BackButton';
 import { FREQ_DEFAULT, FREQ_MAX, FREQ_MIN, FREQ_STEP, FrequencySliderInput } from '@/components/FreqPageComponents';
 import { AppColors } from '@/constants/theme';
 import { router } from 'expo-router';
@@ -5,7 +6,6 @@ import { StatusBar } from "expo-status-bar";
 import { useState } from "react";
 import { Button, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useProtocol } from '../../context/ProtcolStorageContext';
-
 export default function FrequencyPage() {
   const { setFrequencyForAllZones } = useProtocol();
   const [frequency, setFrequency] = useState(FREQ_DEFAULT);
@@ -26,7 +26,8 @@ export default function FrequencyPage() {
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={true}
-      >
+      > 
+        <BackButton />
         <Text style={[styles.title, { color: AppColors.text, marginTop: 16 }]}>
           Frequency (Hz)
         </Text>

@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { styles } from "../../styles/sharedStyles";
 
+import BackButton from "@/components/BackButton";
 import { useProtocol } from "../../context/ProtcolStorageContext";
 import { getProtocols, type Protocol as DbProtocol } from "../../databaseLib/DB";
 
@@ -91,7 +92,7 @@ export default function ProtocolsPage() {
   return (
     <View style={styles.screen}>
       <Text style={styles.title}>Protocols</Text>
-    
+    <BackButton />
 
       <FlatList
         data={cards}

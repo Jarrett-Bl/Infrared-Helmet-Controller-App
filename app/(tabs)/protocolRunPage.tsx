@@ -1,3 +1,4 @@
+import BackButton from '@/components/BackButton';
 import { AppColors } from '@/constants/theme';
 import { router } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -13,7 +14,6 @@ import {
   useWindowDimensions,
 } from "react-native";
 import { useProtocol } from "../../context/ProtcolStorageContext";
-
 // Data structure for protocol settings - built through previous selection screens
 type protocolSettings = {
   id: string;
@@ -205,7 +205,8 @@ export default function RunSessionScreen() {
 
   return (
     <SafeAreaView style={s.screen}>
-      {/* Header*/}
+      {/* Header*/} 
+      <BackButton />
       <View style={s.topBar}>
         <Pressable
           onPress={() => router.push("/protocolPage")}
