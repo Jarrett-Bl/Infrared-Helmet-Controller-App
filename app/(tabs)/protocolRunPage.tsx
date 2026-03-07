@@ -477,7 +477,7 @@ const s = StyleSheet.create({
   iconTxt: { color: AppColors.text, fontSize: 20, fontWeight: "800", opacity: 0.9 },
   title: {
     color: AppColors.text,
-    fontSize: 24,
+    fontSize: 44,
     fontWeight: "800",
     position: "absolute",
     left: 0,
