@@ -1,18 +1,21 @@
+import { Ionicons } from "@expo/vector-icons";
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
 import {
+  Alert,
   FlatList,
   Platform,
+  Pressable,
   Text,
   TouchableOpacity,
   View,
-  useWindowDimensions
+  useWindowDimensions,
 } from "react-native";
 import { styles } from "../../styles/sharedStyles";
 
+import { AppColors } from "@/constants/theme";
 import { useProtocol } from "../../context/ProtcolStorageContext";
 import { getProtocols, type Protocol as DbProtocol } from "../../databaseLib/DB";
-
 
 type ProtocolCard = {
   id: string;
@@ -25,52 +28,85 @@ type ProtocolCard = {
   activeZones: number[];
 };
 
+function mapDbProtocolsToCards(protocols: DbProtocol[]): ProtocolCard[] {
+  return protocols.map((p) => {
+    const zoneIds = Object.keys(p.Zones || {}).map(Number);
+    const firstZoneId = zoneIds[0];
+    const firstCfg =
+      firstZoneId != null ? p.Zones[firstZoneId] : undefined;
+
+    return {
+      id: String(p.id ?? ""),
+      name: p.name,
+      timeMin: p.timeMin,
+      timeSec: p.timeSec,
+      powerLevel: firstCfg?.powerLevel ?? 0,
+      frequencyHz: firstCfg?.frequencyHz ?? 0,
+      sessionDurationMin: p.timeMin,
+      activeZones: zoneIds,
+    };
+  });
+}
+
 export default function ProtocolsPage() {
   const [dbProtocols, setDbProtocols] = useState<DbProtocol[]>([]);
   const [cards, setCards] = useState<ProtocolCard[]>([]);
-  const { loadProtocol } = useProtocol();
+  const { loadProtocol, deleteProtocol } = useProtocol();
+
+  const refreshProtocols = useCallback(
+    async (opts?: { isActive?: () => boolean }) => {
+      try {
+        const protocols = await getProtocols();
+        if (opts?.isActive && !opts.isActive()) return;
+        console.log("Protocols in DB on ProtocolsPage focus:", protocols);
+        setDbProtocols(protocols);
+        setCards(mapDbProtocolsToCards(protocols));
+      } catch (e) {
+        if (!opts?.isActive || opts.isActive()) {
+          console.warn("Failed to load protocols from DB:", e);
+        }
+      }
+    },
+    [],
+  );
 
   useFocusEffect(
     useCallback(() => {
       let isActive = true;
-
-      (async () => {
-        try {
-          const protocols = await getProtocols();
-          if (!isActive) return;
-
-          console.log("Protocols in DB on ProtocolsPage focus:", protocols);
-
-          setDbProtocols(protocols);
-
-          const mapped: ProtocolCard[] = protocols.map((p) => {
-            const zoneIds = Object.keys(p.Zones || {}).map(Number);
-            const firstZoneId = zoneIds[0];
-            const firstCfg =
-              firstZoneId != null ? p.Zones[firstZoneId] : undefined;
-
-            return {
-              id: String(p.id ?? ""),
-              name: p.name,
-              timeMin: p.timeMin,
-              timeSec: p.timeSec,
-              powerLevel: firstCfg?.powerLevel ?? 0,
-              frequencyHz: firstCfg?.frequencyHz ?? 0,
-              sessionDurationMin: p.timeMin,
-              activeZones: zoneIds,
-            };
-          });
-
-          setCards(mapped);
-        } catch (e) {
-          console.warn("Failed to load protocols from DB:", e);
-        }
-      })();
-
+      refreshProtocols({ isActive: () => isActive });
       return () => {
         isActive = false;
       };
-    }, [])
+    }, [refreshProtocols]),
+  );
+
+  const handleDeleteProtocol = useCallback(
+    (id: number, name: string) => {
+      Alert.alert(
+        "Delete protocol",
+        `Remove "${name}" from saved protocols? This cannot be undone.`,
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Delete",
+            style: "destructive",
+            onPress: async () => {
+              try {
+                await deleteProtocol(id);
+                await refreshProtocols();
+              } catch (e) {
+                console.warn("Failed to delete protocol:", e);
+                Alert.alert(
+                  "Error",
+                  e instanceof Error ? e.message : "Could not delete protocol.",
+                );
+              }
+            },
+          },
+        ],
+      );
+    },
+    [deleteProtocol, refreshProtocols],
   );
 
   const onLoad = (card: ProtocolCard) => {
@@ -85,13 +121,13 @@ export default function ProtocolsPage() {
   };
 
   const renderItem = ({ item }: { item: ProtocolCard }) => (
-    <Card item={item} onLoad={onLoad} />
+    <Card item={item} onLoad={onLoad} onDelete={handleDeleteProtocol} />
   );
 
   return (
     <View style={styles.screen}>
       <Text style={styles.title}>Protocols</Text>
-    
+
 
       <FlatList
         data={cards}
@@ -112,12 +148,15 @@ export default function ProtocolsPage() {
 function Card({
   item,
   onLoad,
+  onDelete,
 }: {
   item: ProtocolCard;
   onLoad: (p: ProtocolCard) => void;
+  onDelete: (id: number, name: string) => void;
 }) {
   const { width } = useWindowDimensions();
   const isNarrow = width < 410;
+  const protocolId = Number(item.id);
 
   return (
     <View
@@ -141,13 +180,64 @@ function Card({
         <ZoneGrid selected={item.activeZones} />
       </View>
 
-      <TouchableOpacity
-        style={[styles.loadBtn, isNarrow && styles.loadBtnFull]}
-        onPress={() => onLoad(item)}
-        activeOpacity={0.85}
+      <View
+        style={
+          isNarrow
+            ? {
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 10,
+                marginTop: 8,
+                alignSelf: "stretch",
+              }
+            : {
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 10,
+                marginLeft: 16,
+                alignSelf: "center",
+              }
+        }
       >
-        <Text style={styles.loadBtnText}>Load</Text>
-      </TouchableOpacity>
+        <TouchableOpacity
+          style={[
+            styles.loadBtn,
+            isNarrow
+              ? {
+                  flex: 1,
+                  marginLeft: 0,
+                  marginTop: 0,
+                  alignSelf: "stretch",
+                  alignItems: "center",
+                }
+              : { marginLeft: 0 },
+          ]}
+          onPress={() => onLoad(item)}
+          activeOpacity={0.85}
+        >
+          <Text style={styles.loadBtnText}>Load</Text>
+        </TouchableOpacity>
+        {item.id ? (
+          <Pressable
+            onPress={() => onDelete(protocolId, item.name)}
+            hitSlop={10}
+            accessibilityRole="button"
+            accessibilityLabel="Delete protocol"
+            testID={`btn-delete-protocol-${item.id}`}
+            style={{
+              padding: 8,
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <Ionicons
+              name="trash-outline"
+              size={22}
+              color={AppColors.statusIdle}
+            />
+          </Pressable>
+        ) : null}
+      </View>
     </View>
   );
 }

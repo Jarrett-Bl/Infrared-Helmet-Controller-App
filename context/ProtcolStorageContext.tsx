@@ -1,6 +1,6 @@
 import { createContext, ReactNode, useContext, useState } from "react";
 import type { Protocol, ZoneConfig } from "../databaseLib/DB";
-import { storeProtocol } from "../databaseLib/DB";
+import { deleteProtocolById, storeProtocol } from "../databaseLib/DB";
 
 type ProtocolContextValue = {
   protocol: Protocol | null;
@@ -12,6 +12,7 @@ type ProtocolContextValue = {
   setTime: (timeMin: number, timeSec: number) => void;
   saveProtocol: () => Promise<number>;
   loadProtocol: (p: Protocol) => void;
+  deleteProtocol: (id: number) => Promise<void>;
 };
 
 const ProtocolStorageContext = createContext<ProtocolContextValue | undefined>(
@@ -121,6 +122,11 @@ export function ProtocolProvider({ children }: { children: ReactNode }) {
     setProtocol(p);
   };
 
+  const deleteProtocol = async (id: number): Promise<void> => {
+    await deleteProtocolById(id);
+    setProtocol((prev) => (prev?.id === id ? null : prev));
+  };
+
   return (
     <ProtocolStorageContext.Provider
       value={{
@@ -133,6 +139,7 @@ export function ProtocolProvider({ children }: { children: ReactNode }) {
         setTime,
         saveProtocol,
         loadProtocol,
+        deleteProtocol,
       }}
     >
       {children}
