@@ -1,18 +1,19 @@
-import { HapticTab } from '@/components/haptic-tab';
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { Stack, Tabs } from 'expo-router';
-import React, { createContext, useState } from 'react';
+import { HapticTab } from "@/components/haptic-tab";
+import { Colors } from "@/constants/theme";
+import { useColorScheme } from "@/hooks/use-color-scheme";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { Stack, Tabs } from "expo-router";
+import React, { createContext, useState } from "react";
 
-
-type TextSize = 'sm' | 'md' | 'lg';
+type TextSize = "sm" | "md" | "lg";
 type Ctx = { size: TextSize; setSize: (s: TextSize) => void };
 
 const TextSizeContext = createContext<Ctx | undefined>(undefined);
 
-export const TextSizeProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
-  const [size, setSize] = useState<TextSize>('md');
+export const TextSizeProvider: React.FC<React.PropsWithChildren> = ({
+  children,
+}) => {
+  const [size, setSize] = useState<TextSize>("md");
   return (
     <TextSizeContext.Provider value={{ size, setSize }}>
       {children}
@@ -20,29 +21,29 @@ export const TextSizeProvider: React.FC<React.PropsWithChildren> = ({ children }
   );
 };
 
-
 export function RootLayout() {
-    return (
-        <TextSizeProvider>
-        <Stack screenOptions ={{ headerShown: false}}>
-            <Stack.Screen name="Helmet Control" />
-            <Stack.Screen name="Settings" />
-            <Stack.Screen name= "Protocols" />
-        </Stack>
-        </TextSizeProvider>
-        );
-    }
+  return (
+    <TextSizeProvider>
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="Helmet Control" />
+        <Stack.Screen name="Settings" />
+        <Stack.Screen name="Protocols" />
+      </Stack>
+    </TextSizeProvider>
+  );
+}
 export default function TabLayout() {
   const colorScheme = useColorScheme();
 
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
+        tabBarActiveTintColor: Colors[colorScheme ?? "light"].tint,
         headerShown: false,
         tabBarButton: HapticTab,
-      }}>
-        <Tabs.Screen
+      }}
+    >
+      <Tabs.Screen
         name="homeScreen"
         options={{
           title: "Home",
@@ -50,9 +51,9 @@ export default function TabLayout() {
             <Ionicons name="home" size={22} color={color} />
           ),
         }}
-        />
+      />
 
-        <Tabs.Screen
+      <Tabs.Screen
         name="bluetoothPage1"
         options={{
           title: "Helmet Control",
@@ -60,13 +61,17 @@ export default function TabLayout() {
             <Ionicons name="phone-portrait-outline" size={22} color={color} />
           ),
         }}
-        />
+      />
       <Tabs.Screen
         name="settings"
         options={{
           title: "Settings",
           tabBarIcon: ({ color }) => (
-            <MaterialCommunityIcons name="cog-outline" size={22} color={color} />
+            <MaterialCommunityIcons
+              name="cog-outline"
+              size={22}
+              color={color}
+            />
           ),
         }}
       />
@@ -79,17 +84,15 @@ export default function TabLayout() {
           ),
         }}
       />
-      <Tabs.Screen name="index"   options={{ href: null }} /> 
-      <Tabs.Screen name="zoneSelection"   options={{ href: null }} /> 
-      <Tabs.Screen name="simpleTimePage"  options={{ href: null }} /> 
-      <Tabs.Screen name="bluetoothDevicePairing" options={{href: null}}/>
-      <Tabs.Screen name="runPage" options={{href: null}}/>
-      <Tabs.Screen name="frequencyPage" options={{href: null}}/>
-      <Tabs.Screen name="protocolRunPage" options={{href: null}}/>
-      
-
-    
-
+      <Tabs.Screen name="index" options={{ href: null }} />
+      <Tabs.Screen name="zoneSelection" options={{ href: null }} />
+      <Tabs.Screen name="simpleTimePage" options={{ href: null }} />
+      <Tabs.Screen name="bluetoothDevicePairing" options={{ href: null }} />
+      <Tabs.Screen name="runPage" options={{ href: null }} />
+      <Tabs.Screen name="frequencyPage" options={{ href: null }} />
+      <Tabs.Screen name="protocolRunPage" options={{ href: null }} />
+      <Tabs.Screen name="complexControlPage" options={{ href: null }} />
+      <Tabs.Screen name="complexZoneSelection" options={{ href: null }} />
     </Tabs>
   );
 }
