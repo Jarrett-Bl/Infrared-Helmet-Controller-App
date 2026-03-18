@@ -34,7 +34,10 @@ export default function BlueToothConnectionPage2() {
 
       <View style={styles.center}>
         <Pressable
-          onPress={() => router.push("/complexZoneSelection")}
+          onPress={() => {
+            clearProtocol();
+            router.push("/complexZoneSelection");
+          }}
           style={({ pressed }) => [
             lStyles.startBtn,
             pressed && { opacity: 0.9 },
