@@ -19,8 +19,7 @@ import {
   ViewStyle,
   useWindowDimensions,
 } from "react-native";
-import { useProtocol } from '../../context/ProtcolStorageContext';
-
+import { useProtocol } from "../../context/ProtcolStorageContext";
 
 type SessionSettings = {
   id: string;
@@ -34,26 +33,24 @@ type SessionSettings = {
 };
 
 export default function RunPage() {
-  const { protocol, saveProtocol } = useProtocol();
+  const { protocol, saveProtocol, editingProtocolId } = useProtocol();
   const { width, height } = useWindowDimensions();
   const baseWidth = 390;
   const baseHeight = 844;
   const globalScale = Math.max(
     0.65,
-    Math.min(1, Math.min(width / baseWidth, height / baseHeight))
+    Math.min(1, Math.min(width / baseWidth, height / baseHeight)),
   );
   const bottomControlsHeight = Math.round(84 * globalScale);
   const bottomOffset = Platform.OS === "android" ? 28 : 16;
+  const isEditing = editingProtocolId != null;
 
   useEffect(() => {
     console.log("RunPage protocol:", JSON.stringify(protocol, null, 2));
   }, [protocol]);
 
-
-
   const helmetValues: SessionSettings = useMemo(() => {
     if (!protocol) {
-      // Fallback
       return {
         id: "local-default",
         name: "Quick Session",
@@ -77,11 +74,10 @@ export default function RunPage() {
       timeSec: protocol.timeSec,
       powerLevel: firstZoneCfg?.powerLevel ?? 0,
       frequencyHz: firstZoneCfg?.frequencyHz ?? 0,
-      sessionDurationMin: protocol.timeMin, // you can change this if you want for per zone
-      activeZones: zoneIds
+      sessionDurationMin: protocol.timeMin,
+      activeZones: zoneIds,
     };
   }, [protocol]);
-
 
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -91,7 +87,6 @@ export default function RunPage() {
   const [stopped, setStopped] = useState<boolean>(false);
 
   useEffect(() => {
-
     setRemaining(helmetValues.timeMin * 60 + helmetValues.timeSec);
     setRunning(false);
     setStopped(false);
@@ -158,7 +153,7 @@ export default function RunPage() {
   const ss = useMemo(() => pad2(remaining % 60), [remaining]);
   const freqLabel = useMemo(
     () => `${helmetValues.frequencyHz} Hz`,
-    [helmetValues.frequencyHz]
+    [helmetValues.frequencyHz],
   );
 
   const isComplete = remaining === 0;
@@ -171,7 +166,11 @@ export default function RunPage() {
       : isAtInitial
         ? "Start"
         : "Resume";
-  const primaryOnPress = running ? pauseTimer : isComplete ? undefined : startTimer;
+  const primaryOnPress = running
+    ? pauseTimer
+    : isComplete
+      ? undefined
+      : startTimer;
 
   let statusText = "";
   let statusDotStyle = s.statusPaused;
@@ -189,29 +188,33 @@ export default function RunPage() {
     statusDotStyle = s.statusPaused;
   }
 
-  //think I need to add clear Protocol method to Context methods 
-  // upon save currently I am not incrementing the id var, leading to matching id check to return early. 
-  //TODO !!
-
   const handleSaveProtocol = useCallback(async () => {
     try {
       const id = await saveProtocol();
       console.log("Protocol saved with id:", id);
-      Alert.alert("Saved", `Protocol saved with id ${id}`);
+      Alert.alert(
+        isEditing ? "Updated" : "Saved",
+        isEditing
+          ? `Protocol ${id} updated successfully.`
+          : `Protocol saved with id ${id}`,
+      );
     } catch (e) {
       console.error("Failed to save protocol", e);
-      Alert.alert("Error", "Could not save protocol. Please try again.");
+      Alert.alert(
+        "Error",
+        isEditing
+          ? "Could not update protocol. Please try again."
+          : "Could not save protocol. Please try again.",
+      );
     }
-  }, [saveProtocol]);
+  }, [saveProtocol, isEditing]);
 
   return (
     <SafeAreaView style={s.screen}>
-      {/* Header */}
       <View style={s.topBar}>
         <Text style={s.title} accessibilityRole="header" testID="hdr-session">
           Your Session
         </Text>
-        
       </View>
 
       <ScrollView
@@ -222,13 +225,11 @@ export default function RunPage() {
         ]}
         keyboardShouldPersistTaps="handled"
       >
-        {/* Time */}
         <Row>
           <InfoCard value={mm} label="Minutes" testID="card-minutes" />
           <InfoCard value={ss} label="Seconds" testID="card-seconds" />
         </Row>
 
-        {/* Status */}
         <View style={s.statusWrap} testID="status-wrap">
           <View style={[s.statusDot, statusDotStyle]} />
           <Text style={s.statusText} testID="status-text">
@@ -236,7 +237,6 @@ export default function RunPage() {
           </Text>
         </View>
 
-        {/* Power & Frequency */}
         <Row>
           <InfoCard
             value={helmetValues.powerLevel}
@@ -252,7 +252,6 @@ export default function RunPage() {
           />
         </Row>
 
-        {/* Zones */}
         <View style={s.zonesWrap}>
           <Text style={s.zonesTitle} testID="lbl-zones">
             Zones Enabled
@@ -264,23 +263,21 @@ export default function RunPage() {
           />
         </View>
 
-        {/* Save button */}
         <View style={{ marginVertical: 12 * globalScale, width: "100%" }}>
           <Pressable
             onPress={handleSaveProtocol}
             testID="btn-save"
             style={({ pressed }) => [s.saveBtn, pressed && s.btnPressed]}
             accessibilityRole="button"
-            accessibilityLabel="Save as Protocol"
+            accessibilityLabel={
+              isEditing ? "Update Protocol" : "Save as Protocol"
+            }
             hitSlop={8}
           >
             <Text
-              style={[
-                s.saveBtnTxt,
-                { fontSize: Math.round(26 * globalScale) },
-              ]}
+              style={[s.saveBtnTxt, { fontSize: Math.round(26 * globalScale) }]}
             >
-              Save as Protocol
+              {isEditing ? "Update Protocol" : "Save as Protocol"}
             </Text>
           </Pressable>
         </View>
@@ -288,7 +285,6 @@ export default function RunPage() {
         <View style={{ height: 20 }} />
       </ScrollView>
 
-      {/* Bottom controls */}
       <View
         style={[
           s.bottomRowFixed,
@@ -313,7 +309,6 @@ export default function RunPage() {
   );
 }
 
-
 function Row({ children }: { children: React.ReactNode }) {
   return <View style={s.row}>{children}</View>;
 }
@@ -334,7 +329,7 @@ function InfoCard({
   const baseH = 844;
   const scale = Math.max(
     0.65,
-    Math.min(1, Math.min(width / baseW, height / baseH))
+    Math.min(1, Math.min(width / baseW, height / baseH)),
   );
   return (
     <View
@@ -380,7 +375,7 @@ function ZoneSquares({
   const baseHeight = 844;
   const scale = Math.max(
     0.65,
-    Math.min(1, Math.min(width / baseWidth, height / baseHeight))
+    Math.min(1, Math.min(width / baseWidth, height / baseHeight)),
   );
   const horizontalPadding = 56;
   const availableWidth = Math.max(160, width - horizontalPadding);
@@ -388,15 +383,11 @@ function ZoneSquares({
     6,
     Math.max(
       2,
-      Math.floor(
-        availableWidth / Math.max(64, Math.round(72 * scale))
-      )
-    )
+      Math.floor(availableWidth / Math.max(64, Math.round(72 * scale))),
+    ),
   );
   const gap = Math.round(8 * scale);
-  const rawSZ = Math.floor(
-    (availableWidth - gap * (columns - 1)) / columns
-  );
+  const rawSZ = Math.floor((availableWidth - gap * (columns - 1)) / columns);
   const minSZ = Math.max(36, Math.round(36 * scale));
   const maxSZ = Math.max(64, Math.round(80 * scale));
   const SZ = Math.max(minSZ, Math.min(maxSZ, rawSZ));
@@ -405,7 +396,11 @@ function ZoneSquares({
 
   return (
     <View
-      style={[s.zoneWrap, { justifyContent: "center", flexWrap: "wrap" }, style]}
+      style={[
+        s.zoneWrap,
+        { justifyContent: "center", flexWrap: "wrap" },
+        style,
+      ]}
       testID={testID}
       accessibilityLabel="Zone squares"
     >
@@ -427,9 +422,7 @@ function ZoneSquares({
               {showNumbers && (
                 <Text
                   style={
-                    isOn
-                      ? [s.zoneNumOn, numStyle]
-                      : [s.zoneNumOff, numStyle]
+                    isOn ? [s.zoneNumOn, numStyle] : [s.zoneNumOff, numStyle]
                   }
                 >
                   {n}
@@ -498,7 +491,6 @@ function SecondaryButton({
   );
 }
 
-
 const s = StyleSheet.create({
   screen: {
     flex: 1,
@@ -534,7 +526,12 @@ const s = StyleSheet.create({
     borderColor: AppColors.border,
     alignItems: "center",
   },
-  cardValue: { color: AppColors.text, fontSize: 34, fontWeight: "800", marginBottom: 8 },
+  cardValue: {
+    color: AppColors.text,
+    fontSize: 34,
+    fontWeight: "800",
+    marginBottom: 8,
+  },
   cardValueLg: { fontSize: 36 },
   cardLabel: { color: AppColors.textMuted, fontSize: 14, fontWeight: "600" },
   zonesWrap: {
@@ -562,7 +559,10 @@ const s = StyleSheet.create({
     borderWidth: 1,
     borderColor: AppColors.zoneBorder,
   },
-  zoneOn: { backgroundColor: AppColors.zoneOn, borderColor: AppColors.zoneBorderOn },
+  zoneOn: {
+    backgroundColor: AppColors.zoneOn,
+    borderColor: AppColors.zoneBorderOn,
+  },
   zoneOff: { backgroundColor: AppColors.zoneOff },
   zoneNumOn: { color: AppColors.text, fontWeight: "800", fontSize: 14 },
   zoneNumOff: { color: AppColors.zoneNumOff, fontWeight: "700", fontSize: 14 },

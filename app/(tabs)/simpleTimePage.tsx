@@ -2,7 +2,7 @@ import { AppColors } from "@/constants/theme";
 import Slider from "@react-native-community/slider";
 import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useProtocol } from "../../context/ProtcolStorageContext";
@@ -12,9 +12,17 @@ export default function SimpleTimePage() {
   const [minutes, setMinutes] = useState(15);
   const { protocol, initProtocol, setTime } = useProtocol();
 
+  useEffect(() => {
+    if (!protocol || protocol.editorType !== "simple") return;
+
+    if (typeof protocol.timeMin === "number") {
+      setMinutes(protocol.timeMin);
+    }
+  }, [protocol]);
+
   const handleNext = () => {
     if (!protocol) {
-      initProtocol(); // ensure protocol exists for complex flow
+      initProtocol("simple");
     }
 
     setTime(minutes, 0);
@@ -25,17 +33,14 @@ export default function SimpleTimePage() {
     <SafeAreaView style={styles.screen}>
       <StatusBar style="light" backgroundColor={AppColors.background} />
       <Text style={styles.title}>Select Your Session Time</Text>
-      
 
       <View style={lStyles.body}>
         <View style={[styles.card, lStyles.cardGrow]}>
-          {/* Range header */}
           <View style={lStyles.rangeRow}>
             <Text style={styles.cardSub}>1 – 30</Text>
             <Text style={lStyles.valueText}>{minutes} min</Text>
           </View>
 
-          {/* Slider */}
           <Slider
             style={lStyles.slider}
             minimumValue={1}
@@ -48,7 +53,6 @@ export default function SimpleTimePage() {
             thumbTintColor={AppColors.text}
           />
 
-          {/* Quick-pick tiles */}
           <View style={lStyles.grid}>
             <View style={lStyles.col}>
               <Pressable
@@ -84,7 +88,6 @@ export default function SimpleTimePage() {
           </View>
         </View>
 
-        {/* Next button */}
         <View style={lStyles.footer}>
           <Pressable
             style={[styles.loadBtn, styles.loadBtnFull]}

@@ -69,7 +69,7 @@ function mapDbProtocolsToCards(protocols: DbProtocol[]): ProtocolCard[] {
 export default function ProtocolsPage() {
   const [dbProtocols, setDbProtocols] = useState<DbProtocol[]>([]);
   const [cards, setCards] = useState<ProtocolCard[]>([]);
-  const { loadProtocol, deleteProtocol } = useProtocol();
+  const { loadProtocol, deleteProtocol, startEditingProtocol } = useProtocol();
 
   const refreshProtocols = useCallback(
     async (opts?: { isActive?: () => boolean }) => {
@@ -131,6 +131,22 @@ export default function ProtocolsPage() {
     [deleteProtocol, refreshProtocols],
   );
 
+  const onEdit = (card: ProtocolCard) => {
+    const full = dbProtocols.find((p) => String(p.id) === card.id);
+    if (!full) {
+      console.warn("Protocol not found for id", card.id);
+      return;
+    }
+
+    startEditingProtocol(full);
+
+    if (full.editorType === "simple") {
+      router.push("/zoneSelection");
+    } else {
+      router.push("/complexZoneSelection");
+    }
+  };
+
   const onLoad = (card: ProtocolCard) => {
     const full = dbProtocols.find((p) => String(p.id) === card.id);
     if (!full) {
@@ -143,7 +159,12 @@ export default function ProtocolsPage() {
   };
 
   const renderItem = ({ item }: { item: ProtocolCard }) => (
-    <Card item={item} onLoad={onLoad} onDelete={handleDeleteProtocol} />
+    <Card
+      item={item}
+      onLoad={onLoad}
+      onEdit={onEdit}
+      onDelete={handleDeleteProtocol}
+    />
   );
 
   return (
@@ -169,10 +190,12 @@ export default function ProtocolsPage() {
 function Card({
   item,
   onLoad,
+  onEdit,
   onDelete,
 }: {
   item: ProtocolCard;
   onLoad: (p: ProtocolCard) => void;
+  onEdit: (p: ProtocolCard) => void;
   onDelete: (id: number, name: string) => void;
 }) {
   const { width } = useWindowDimensions();
@@ -241,6 +264,27 @@ function Card({
         >
           <Text style={styles.loadBtnText}>Load</Text>
         </TouchableOpacity>
+
+        {item.id ? (
+          <Pressable
+            onPress={() => onEdit(item)}
+            hitSlop={10}
+            accessibilityRole="button"
+            accessibilityLabel="Edit protocol"
+            testID={`btn-edit-protocol-${item.id}`}
+            style={{
+              padding: 8,
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <Ionicons
+              name="create-outline"
+              size={22}
+              color={AppColors.statusIdle}
+            />
+          </Pressable>
+        ) : null}
 
         {item.id ? (
           <Pressable
