@@ -15,35 +15,53 @@ import { styles } from "../../styles/sharedStyles";
 
 import { AppColors } from "@/constants/theme";
 import { useProtocol } from "../../context/ProtcolStorageContext";
-import { getProtocols, type Protocol as DbProtocol } from "../../databaseLib/DB";
+import {
+  getProtocols,
+  type Protocol as DbProtocol,
+} from "../../databaseLib/DB";
+
+type ZoneLine = {
+  zoneId: number;
+  powerLevel: number;
+  frequencyHz: number;
+};
 
 type ProtocolCard = {
   id: string;
   name: string;
   timeMin: number;
   timeSec: number;
-  powerLevel: number;
-  frequencyHz: number;
+
   sessionDurationMin: number;
   activeZones: number[];
+  zoneLines: ZoneLine[];
 };
 
 function mapDbProtocolsToCards(protocols: DbProtocol[]): ProtocolCard[] {
-  return protocols.map((p) => {
-    const zoneIds = Object.keys(p.Zones || {}).map(Number);
-    const firstZoneId = zoneIds[0];
-    const firstCfg =
-      firstZoneId != null ? p.Zones[firstZoneId] : undefined;
+  const sorted = [...protocols].sort((a, b) => (a.id ?? 0) - (b.id ?? 0));
+
+  return sorted.map((p) => {
+    const zoneIds = Object.keys(p.Zones || {})
+      .map(Number)
+      .sort((a, b) => a - b);
+
+    const zoneLines: ZoneLine[] = zoneIds.map((z) => {
+      const cfg = p.Zones?.[z];
+      return {
+        zoneId: z,
+        powerLevel: cfg?.powerLevel ?? 0,
+        frequencyHz: cfg?.frequencyHz ?? 0,
+      };
+    });
 
     return {
       id: String(p.id ?? ""),
       name: p.name,
       timeMin: p.timeMin,
       timeSec: p.timeSec,
-      powerLevel: firstCfg?.powerLevel ?? 0,
-      frequencyHz: firstCfg?.frequencyHz ?? 0,
       sessionDurationMin: p.timeMin,
       activeZones: zoneIds,
+      zoneLines,
     };
   });
 }
@@ -58,7 +76,9 @@ export default function ProtocolsPage() {
       try {
         const protocols = await getProtocols();
         if (opts?.isActive && !opts.isActive()) return;
+
         console.log("Protocols in DB on ProtocolsPage focus:", protocols);
+
         setDbProtocols(protocols);
         setCards(mapDbProtocolsToCards(protocols));
       } catch (e) {
@@ -73,7 +93,9 @@ export default function ProtocolsPage() {
   useFocusEffect(
     useCallback(() => {
       let isActive = true;
+
       refreshProtocols({ isActive: () => isActive });
+
       return () => {
         isActive = false;
       };
@@ -128,7 +150,6 @@ export default function ProtocolsPage() {
     <View style={styles.screen}>
       <Text style={styles.title}>Protocols</Text>
 
-
       <FlatList
         data={cards}
         keyExtractor={(p) => p.id}
@@ -173,11 +194,14 @@ function Card({
         <Text style={styles.cardTitle}>
           Protocol {item.id}: {item.name}
         </Text>
+
         <Text style={styles.cardSub}>
-          Power: {item.powerLevel}%  •  {item.frequencyHz}Hz
-          {item.sessionDurationMin ? `  •  ${item.sessionDurationMin} min` : ""}
+          {item.sessionDurationMin ? `${item.sessionDurationMin} min` : ""}
         </Text>
+
         <ZoneGrid selected={item.activeZones} />
+
+        <ZoneConfigGrid zoneLines={item.zoneLines} />
       </View>
 
       <View
@@ -217,6 +241,7 @@ function Card({
         >
           <Text style={styles.loadBtnText}>Load</Text>
         </TouchableOpacity>
+
         {item.id ? (
           <Pressable
             onPress={() => onDelete(protocolId, item.name)}
@@ -280,6 +305,64 @@ function ZoneGrid({ selected }: { selected: number[] }) {
           </View>
         );
       })}
+    </View>
+  );
+}
+
+/**
+ * Renders each active zone with its own power/frequency.
+ * Uses wrap so it stays compact.
+ */
+function ZoneConfigGrid({ zoneLines }: { zoneLines: ZoneLine[] }) {
+  const { width } = useWindowDimensions();
+  const base = 390;
+  const scale = Math.max(0.75, Math.min(1.25, width / base));
+
+  const chipPadV = Math.max(8, Math.round(10 * scale));
+  const chipPadH = Math.max(10, Math.round(12 * scale));
+  const titleSize = Math.max(12, Math.round(13 * scale));
+  const subSize = Math.max(11, Math.round(12 * scale));
+
+  if (!zoneLines.length) {
+    return (
+      <Text style={[styles.cardSub, { marginTop: 6 }]}>
+        No zones configured.
+      </Text>
+    );
+  }
+
+  return (
+    <View style={{ marginTop: 8 }}>
+      <Text style={[styles.cardSub, { marginBottom: 6 }]}>Zone settings:</Text>
+
+      <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
+        {zoneLines.map((z) => (
+          <View
+            key={z.zoneId}
+            style={[
+              styles.zoneCell,
+              {
+                paddingVertical: chipPadV,
+                paddingHorizontal: chipPadH,
+                borderRadius: 12,
+                marginRight: 8,
+                marginBottom: 8,
+                alignItems: "flex-start",
+              },
+              styles.zoneOn,
+            ]}
+          >
+            <Text style={[styles.zoneTextOn, { fontSize: titleSize }]}>
+              Z{z.zoneId}
+            </Text>
+            <Text
+              style={[styles.zoneTextOn, { fontSize: subSize, opacity: 0.9 }]}
+            >
+              {z.powerLevel}% • {z.frequencyHz}Hz
+            </Text>
+          </View>
+        ))}
+      </View>
     </View>
   );
 }
