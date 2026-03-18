@@ -1,10 +1,15 @@
 import { createContext, ReactNode, useContext, useState } from "react";
 import type { Protocol, ZoneConfig } from "../databaseLib/DB";
-import { deleteProtocolById, storeProtocol } from "../databaseLib/DB";
+import {
+  deleteProtocolById,
+  storeProtocol,
+  updateProtocol,
+} from "../databaseLib/DB";
 
 type ProtocolContextValue = {
   protocol: Protocol | null;
-  initProtocol: () => void;
+  editingProtocolId: number | null;
+  initProtocol: (editorType?: "simple" | "complex") => void;
   setZonesFromSelection: (zoneIds: number[]) => void;
   setZoneConfigForZones: (zoneIds: number[], cfg: ZoneConfig) => void;
   setPowerForAllZones: (powerLevel: number) => void;
@@ -12,6 +17,9 @@ type ProtocolContextValue = {
   setTime: (timeMin: number, timeSec: number) => void;
   saveProtocol: () => Promise<number>;
   loadProtocol: (p: Protocol) => void;
+  startEditingProtocol: (p: Protocol) => void;
+  clearEditingProtocol: () => void;
+  clearProtocol: () => void;
   deleteProtocol: (id: number) => Promise<void>;
 };
 
@@ -21,16 +29,21 @@ const ProtocolStorageContext = createContext<ProtocolContextValue | undefined>(
 
 export function ProtocolProvider({ children }: { children: ReactNode }) {
   const [protocol, setProtocol] = useState<Protocol | null>(null);
+  const [editingProtocolId, setEditingProtocolId] = useState<number | null>(
+    null,
+  );
 
-  const initProtocol = () => {
+  const initProtocol = (editorType: "simple" | "complex" = "simple") => {
     const randomSuffix = Math.random().toString(36).slice(2, 6);
     const autoName = `Protocol-${randomSuffix}`;
 
+    setEditingProtocolId(null);
     setProtocol({
       name: autoName,
       timeMin: 0,
       timeSec: 0,
       Zones: {},
+      editorType,
     });
   };
 
@@ -41,6 +54,7 @@ export function ProtocolProvider({ children }: { children: ReactNode }) {
         timeMin: 0,
         timeSec: 0,
         Zones: {},
+        editorType: "simple",
       }
     );
   };
@@ -48,10 +62,11 @@ export function ProtocolProvider({ children }: { children: ReactNode }) {
   const setZonesFromSelection = (zoneIds: number[]) => {
     setProtocol((prev) => {
       const base = ensureBaseProtocol(prev);
-      const nextZones: Record<number, ZoneConfig> = { ...(base.Zones ?? {}) };
+      const prevZones = base.Zones ?? {};
+      const nextZones: Record<number, ZoneConfig> = {};
 
       zoneIds.forEach((id) => {
-        nextZones[id] = nextZones[id] ?? { powerLevel: 0, frequencyHz: 0 };
+        nextZones[id] = prevZones[id] ?? { powerLevel: 0, frequencyHz: 0 };
       });
 
       return { ...base, Zones: nextZones };
@@ -107,11 +122,25 @@ export function ProtocolProvider({ children }: { children: ReactNode }) {
       throw new Error("No protocol to save");
     }
 
+    if (editingProtocolId != null) {
+      await updateProtocol(editingProtocolId, {
+        name: protocol.name,
+        timeMin: protocol.timeMin,
+        timeSec: protocol.timeSec,
+        Zones: protocol.Zones,
+        editorType: protocol.editorType,
+      });
+
+      setProtocol((prev) => (prev ? { ...prev, id: editingProtocolId } : prev));
+      return editingProtocolId;
+    }
+
     const newId = await storeProtocol({
       name: protocol.name,
       timeMin: protocol.timeMin,
       timeSec: protocol.timeSec,
       Zones: protocol.Zones,
+      editorType: protocol.editorType,
     });
 
     setProtocol((prev) => (prev ? { ...prev, id: newId } : prev));
@@ -122,15 +151,31 @@ export function ProtocolProvider({ children }: { children: ReactNode }) {
     setProtocol(p);
   };
 
+  const startEditingProtocol = (p: Protocol) => {
+    setProtocol(p);
+    setEditingProtocolId(p.id ?? null);
+  };
+
+  const clearEditingProtocol = () => {
+    setEditingProtocolId(null);
+  };
+
   const deleteProtocol = async (id: number): Promise<void> => {
     await deleteProtocolById(id);
     setProtocol((prev) => (prev?.id === id ? null : prev));
+    setEditingProtocolId((prev) => (prev === id ? null : prev));
+  };
+
+  const clearProtocol = () => {
+    setProtocol(null);
+    setEditingProtocolId(null);
   };
 
   return (
     <ProtocolStorageContext.Provider
       value={{
         protocol,
+        editingProtocolId,
         initProtocol,
         setZonesFromSelection,
         setZoneConfigForZones,
@@ -139,7 +184,10 @@ export function ProtocolProvider({ children }: { children: ReactNode }) {
         setTime,
         saveProtocol,
         loadProtocol,
+        startEditingProtocol,
+        clearEditingProtocol,
         deleteProtocol,
+        clearProtocol,
       }}
     >
       {children}

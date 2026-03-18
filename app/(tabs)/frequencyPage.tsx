@@ -1,15 +1,49 @@
-import { FREQ_DEFAULT, FREQ_MAX, FREQ_MIN, FREQ_STEP, FrequencySliderInput } from '@/components/FreqPageComponents';
-import { AppColors } from '@/constants/theme';
-import { router } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import { useState } from 'react';
-import { Button, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { useProtocol } from '../../context/ProtcolStorageContext';
-import PowerLevelSection from '@/components/powerLevelComponent';
+import {
+  FREQ_DEFAULT,
+  FREQ_MAX,
+  FREQ_MIN,
+  FREQ_STEP,
+  FrequencySliderInput,
+} from "@/components/FreqPageComponents";
+import PowerLevelSection from "@/components/powerLevelComponent";
+import { AppColors } from "@/constants/theme";
+import { router } from "expo-router";
+import { StatusBar } from "expo-status-bar";
+import { useEffect, useRef, useState } from "react";
+import {
+  Button,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+import { useProtocol } from "../../context/ProtcolStorageContext";
 
 export default function FrequencyPage() {
-  const { setFrequencyForAllZones } = useProtocol();
+  const { protocol, setFrequencyForAllZones } = useProtocol();
   const [frequency, setFrequency] = useState(FREQ_DEFAULT);
+  const didInitFromProtocol = useRef(false);
+
+  useEffect(() => {
+    if (didInitFromProtocol.current) return;
+    if (!protocol || protocol.editorType !== "simple") return;
+
+    const zoneIds = Object.keys(protocol.Zones || {}).map(Number);
+    if (!zoneIds.length) {
+      didInitFromProtocol.current = true;
+      return;
+    }
+
+    const firstZoneId = zoneIds[0];
+    const existingFrequency = protocol.Zones[firstZoneId]?.frequencyHz;
+
+    if (typeof existingFrequency === "number") {
+      setFrequency(existingFrequency);
+    }
+
+    didInitFromProtocol.current = true;
+  }, [protocol]);
 
   const handleNext = () => {
     if (frequency < FREQ_MIN || frequency > FREQ_MAX) {
@@ -33,8 +67,6 @@ export default function FrequencyPage() {
         <Text style={[styles.title, { color: AppColors.text, marginTop: 16 }]}>
           Frequency (Hz)
         </Text>
-
-        
 
         <FrequencySliderInput
           value={frequency}
@@ -80,7 +112,6 @@ export default function FrequencyPage() {
         </View>
       </ScrollView>
     </View>
-    
   );
 }
 

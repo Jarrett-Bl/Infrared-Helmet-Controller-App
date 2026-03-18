@@ -1,15 +1,15 @@
-import { router } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import { useCallback, useEffect, useState } from 'react';
+import { router } from "expo-router";
+import { StatusBar } from "expo-status-bar";
+import { useCallback, useEffect, useState } from "react";
 import {
   Pressable,
   SafeAreaView,
   ScrollView,
   Text,
   TouchableOpacity,
-  View
-} from 'react-native';
-import { useProtocol } from '../../context/ProtcolStorageContext';
+  View,
+} from "react-native";
+import { useProtocol } from "../../context/ProtcolStorageContext";
 import { styles } from "../../styles/sharedStyles";
 
 export default function FunctionsScreen() {
@@ -17,17 +17,27 @@ export default function FunctionsScreen() {
   const [selectedZones, setSelectedZones] = useState<number[]>([]);
 
   useEffect(() => {
-    initProtocol();
-  },[initProtocol]);
+    if (!protocol) {
+      initProtocol("simple");
+      return;
+    }
+
+    if (protocol.editorType === "simple") {
+      const existingZoneIds = Object.keys(protocol.Zones || {})
+        .map(Number)
+        .sort((a, b) => a - b);
+
+      setSelectedZones(existingZoneIds);
+    }
+  }, [protocol, initProtocol]);
 
   const zones = Array.from({ length: 12 }, (_, i) => i + 1);
 
- 
   const toggleZone = useCallback((zoneNumber: number) => {
     setSelectedZones((prev) =>
       prev.includes(zoneNumber)
         ? prev.filter((z) => z !== zoneNumber)
-        : [...prev, zoneNumber]
+        : [...prev, zoneNumber],
     );
   }, []);
 
@@ -39,19 +49,15 @@ export default function FunctionsScreen() {
   const isSelected = (zoneNumber: number): boolean =>
     Array.isArray(selectedZones) && selectedZones.includes(zoneNumber);
 
-
   return (
     <SafeAreaView style={styles.screen}>
       <StatusBar style="light" />
 
-      {/* Header */}
       <View style={styles.header}>
         <Text style={styles.title}>Zone Selection</Text>
       </View>
 
-
       <ScrollView contentContainerStyle={styles.scrollContainer}>
-        {/* Zone Grid */}
         <View style={styles.gridContainer}>
           {zones.map((zoneNumber, index) => {
             const selected = isSelected(zoneNumber);
@@ -72,7 +78,6 @@ export default function FunctionsScreen() {
                 accessibilityState={{ checked: selected }}
               >
                 <View style={styles.zoneContent}>
-                  {/* Radio/Checkbox Visual */}
                   <View style={styles.radioContainer}>
                     <View
                       style={[
@@ -91,22 +96,20 @@ export default function FunctionsScreen() {
           })}
         </View>
 
-          <Pressable
-  onPress={handleNext}
-  style={({ pressed }) => [
-    styles.selectedContainer,
-    { opacity: pressed ? 0.8 : 1 },
-  ]}
->
-  <Text style={styles.selectedText}>
-    {selectedZones.length > 0
-      ? `Selected Zones: ${selectedZones.sort((a, b) => a - b).join(', ')}`
-      : 'No zones selected'}
-  </Text>
-</Pressable>
-        
+        <Pressable
+          onPress={handleNext}
+          style={({ pressed }) => [
+            styles.selectedContainer,
+            { opacity: pressed ? 0.8 : 1 },
+          ]}
+        >
+          <Text style={styles.selectedText}>
+            {selectedZones.length > 0
+              ? `Selected Zones: ${selectedZones.sort((a, b) => a - b).join(", ")}`
+              : "No zones selected"}
+          </Text>
+        </Pressable>
       </ScrollView>
     </SafeAreaView>
   );
 }
-
