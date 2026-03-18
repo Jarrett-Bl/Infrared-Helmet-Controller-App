@@ -14,7 +14,7 @@ export default function BlueToothConnectionPage2() {
       <StatusBar style="light" backgroundColor={AppColors.background} />
 
       <Text style={[styles.title, { marginTop: 8 }]}>
-        Press Start to begin designing a protocol
+        Begin designing a simple or complex protocol
       </Text>
 
       <View style={styles.center}>
@@ -28,7 +28,19 @@ export default function BlueToothConnectionPage2() {
             pressed && { opacity: 0.9 },
           ]}
         >
-          <Text style={lStyles.startLabel}>Start</Text>
+          <Text style={lStyles.startLabel}>Simple</Text>
+        </Pressable>
+      </View>
+
+      <View style={styles.center}>
+        <Pressable
+          onPress={() => router.push("/complexZoneSelection")}
+          style={({ pressed }) => [
+            lStyles.startBtn,
+            pressed && { opacity: 0.9 },
+          ]}
+        >
+          <Text style={lStyles.startLabel}>Complex</Text>
         </Pressable>
       </View>
     </SafeAreaView>
