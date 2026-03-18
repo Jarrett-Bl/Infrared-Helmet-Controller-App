@@ -1,6 +1,13 @@
+<<<<<<< HEAD
 import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useCallback, useMemo, useState } from "react";
+=======
+import BackButton from '@/components/BackButton';
+import { router } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
+import { useCallback, useState } from 'react';
+>>>>>>> back-nav
 import {
   Pressable,
   SafeAreaView,
@@ -11,9 +18,12 @@ import {
 } from "react-native";
 import { useProtocol } from "../../context/ProtcolStorageContext";
 import { styles } from "../../styles/sharedStyles";
+<<<<<<< HEAD
 
 type ZoneGroup = { id: number; zones: number[]; color: string };
 
+=======
+>>>>>>> back-nav
 export default function ComplexZoneSelectionPage() {
   const { initProtocol, setZonesFromSelection } = useProtocol();
 
@@ -129,7 +139,7 @@ export default function ComplexZoneSelectionPage() {
   return (
     <SafeAreaView style={styles.screen}>
       <StatusBar style="light" />
-
+      <BackButton />
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.title}>Zone Selection</Text>

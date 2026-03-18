@@ -4,6 +4,7 @@ import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import BackButton from "../../components/BackButton";
 import { styles } from "../../styles/sharedStyles";
 
 export default function BlueToothConnectionPage2() {
@@ -11,7 +12,8 @@ export default function BlueToothConnectionPage2() {
 
   return (
     <SafeAreaView style={styles.screen}>
-      <StatusBar style="light" backgroundColor={AppColors.background} />
+      <StatusBar style="light" backgroundColor={AppColors.background} /> 
+      <BackButton />
 
       <Text style={[styles.title, { marginTop: 8 }]}>
         Press Start to begin designing a protocol

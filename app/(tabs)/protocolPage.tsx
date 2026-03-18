@@ -13,7 +13,11 @@ import {
 } from "react-native";
 import { styles } from "../../styles/sharedStyles";
 
+<<<<<<< HEAD
 import { AppColors } from "@/constants/theme";
+=======
+import BackButton from "@/components/BackButton";
+>>>>>>> back-nav
 import { useProtocol } from "../../context/ProtcolStorageContext";
 import {
   getProtocols,
@@ -170,6 +174,10 @@ export default function ProtocolsPage() {
   return (
     <View style={styles.screen}>
       <Text style={styles.title}>Protocols</Text>
+<<<<<<< HEAD
+=======
+    <BackButton />
+>>>>>>> back-nav
 
       <FlatList
         data={cards}

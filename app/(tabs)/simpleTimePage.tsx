@@ -1,3 +1,4 @@
+import BackButton from "@/components/BackButton";
 import { AppColors } from "@/constants/theme";
 import Slider from "@react-native-community/slider";
 import { router } from "expo-router";
@@ -7,7 +8,6 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useProtocol } from "../../context/ProtcolStorageContext";
 import { styles } from "../../styles/sharedStyles";
-
 export default function SimpleTimePage() {
   const [minutes, setMinutes] = useState(15);
   const { protocol, initProtocol, setTime } = useProtocol();
@@ -32,6 +32,7 @@ export default function SimpleTimePage() {
   return (
     <SafeAreaView style={styles.screen}>
       <StatusBar style="light" backgroundColor={AppColors.background} />
+      <BackButton />
       <Text style={styles.title}>Select Your Session Time</Text>
 
       <View style={lStyles.body}>
