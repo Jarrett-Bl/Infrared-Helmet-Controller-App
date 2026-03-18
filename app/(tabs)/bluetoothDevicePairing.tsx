@@ -11,7 +11,7 @@ export default function BlueToothConnectionPage2() {
       <StatusBar style="light" backgroundColor={AppColors.background} />
 
       <Text style={[styles.title, { marginTop: 8 }]}>
-        Begin designing a simple of complex protocol
+        Begin designing a simple or complex protocol
       </Text>
       
 
