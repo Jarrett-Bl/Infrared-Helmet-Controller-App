@@ -81,6 +81,11 @@ export async function getProtocols(): Promise<Protocol[]> {
   }));
 }
 
+export async function deleteProtocolById(id: number): Promise<void> {
+  const db = await getDb();
+  await db.runAsync(`DELETE FROM protocols WHERE id = ?;`, [id]);
+}
+
 // export async function seedProtocols() {
 //   const db = await getDb();
 
