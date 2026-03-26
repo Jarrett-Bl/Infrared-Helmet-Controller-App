@@ -26,10 +26,15 @@ type SessionSettings = {
   name: string;
   timeMin: number;
   timeSec: number;
-  powerLevel: number;
-  frequencyHz: number;
   sessionDurationMin: number;
   activeZones: number[];
+};
+
+type ZoneDisplay = {
+  zoneId: number;
+  isActive: boolean;
+  powerLevel: number;
+  frequencyHz: number;
 };
 
 export default function RunPage() {
@@ -56,27 +61,35 @@ export default function RunPage() {
         name: "Quick Session",
         timeMin: 15,
         timeSec: 0,
-        powerLevel: 50,
-        frequencyHz: 10,
         sessionDurationMin: 15,
         activeZones: [1, 2, 3, 4],
       };
     }
 
     const zoneIds = Object.keys(protocol.Zones).map((n) => Number(n));
-    const firstZoneId = zoneIds[0] ?? 1;
-    const firstZoneCfg = protocol.Zones[firstZoneId];
 
     return {
       id: (protocol.id ?? -1).toString(),
       name: protocol.name,
       timeMin: protocol.timeMin,
       timeSec: protocol.timeSec,
-      powerLevel: firstZoneCfg?.powerLevel ?? 0,
-      frequencyHz: firstZoneCfg?.frequencyHz ?? 0,
       sessionDurationMin: protocol.timeMin,
       activeZones: zoneIds,
     };
+  }, [protocol]);
+
+  const zoneDisplays: ZoneDisplay[] = useMemo(() => {
+    return Array.from({ length: 12 }, (_, i) => {
+      const zoneId = i + 1;
+      const cfg = protocol?.Zones?.[zoneId];
+
+      return {
+        zoneId,
+        isActive: !!cfg,
+        powerLevel: cfg?.powerLevel ?? 0,
+        frequencyHz: cfg?.frequencyHz ?? 0,
+      };
+    });
   }, [protocol]);
 
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -151,10 +164,6 @@ export default function RunPage() {
 
   const mm = useMemo(() => pad2(Math.floor(remaining / 60)), [remaining]);
   const ss = useMemo(() => pad2(remaining % 60), [remaining]);
-  const freqLabel = useMemo(
-    () => `${helmetValues.frequencyHz} Hz`,
-    [helmetValues.frequencyHz],
-  );
 
   const isComplete = remaining === 0;
   const isAtInitial = remaining === initialTotalSeconds;
@@ -220,7 +229,7 @@ export default function RunPage() {
       <ScrollView
         style={{ flex: 1 }}
         contentContainerStyle={[
-          { paddingHorizontal: 28 },
+          { paddingHorizontal: 20, paddingTop: 8 },
           { paddingBottom: bottomControlsHeight + bottomOffset + 24 },
         ]}
         keyboardShouldPersistTaps="handled"
@@ -237,33 +246,15 @@ export default function RunPage() {
           </Text>
         </View>
 
-        <Row>
-          <InfoCard
-            value={helmetValues.powerLevel}
-            label="Power Level"
-            large
-            testID="card-power"
-          />
-          <InfoCard
-            value={freqLabel}
-            label="Frequency"
-            large
-            testID="card-frequency"
-          />
-        </Row>
-
         <View style={s.zonesWrap}>
           <Text style={s.zonesTitle} testID="lbl-zones">
-            Zones Enabled
+            Zone Settings
           </Text>
-          <ZoneSquares
-            active={helmetValues.activeZones}
-            showNumbers
-            testID="zones-grid"
-          />
+
+          <ZoneSettingsGrid zones={zoneDisplays} />
         </View>
 
-        <View style={{ marginVertical: 12 * globalScale, width: "100%" }}>
+        <View style={{ marginVertical: 8 * globalScale, width: "100%" }}>
           <Pressable
             onPress={handleSaveProtocol}
             testID="btn-save"
@@ -275,7 +266,7 @@ export default function RunPage() {
             hitSlop={8}
           >
             <Text
-              style={[s.saveBtnTxt, { fontSize: Math.round(26 * globalScale) }]}
+              style={[s.saveBtnTxt, { fontSize: Math.round(22 * globalScale) }]}
             >
               {isEditing ? "Update Protocol" : "Save as Protocol"}
             </Text>
@@ -331,6 +322,7 @@ function InfoCard({
     0.65,
     Math.min(1, Math.min(width / baseW, height / baseH)),
   );
+
   return (
     <View
       style={[
@@ -359,79 +351,36 @@ function InfoCard({
   );
 }
 
-function ZoneSquares({
-  active,
-  showNumbers = true,
-  style,
-  testID,
-}: {
-  active: number[];
-  showNumbers?: boolean;
-  style?: ViewStyle;
-  testID?: string;
-}) {
-  const { width, height } = useWindowDimensions();
-  const baseWidth = 390;
-  const baseHeight = 844;
-  const scale = Math.max(
-    0.65,
-    Math.min(1, Math.min(width / baseWidth, height / baseHeight)),
-  );
-  const horizontalPadding = 56;
-  const availableWidth = Math.max(160, width - horizontalPadding);
-  const columns = Math.min(
-    6,
-    Math.max(
-      2,
-      Math.floor(availableWidth / Math.max(64, Math.round(72 * scale))),
-    ),
-  );
-  const gap = Math.round(8 * scale);
-  const rawSZ = Math.floor((availableWidth - gap * (columns - 1)) / columns);
-  const minSZ = Math.max(36, Math.round(36 * scale));
-  const maxSZ = Math.max(64, Math.round(80 * scale));
-  const SZ = Math.max(minSZ, Math.min(maxSZ, rawSZ));
-
-  const numStyle = { fontSize: Math.round(12 * scale) };
-
+function ZoneSettingsGrid({ zones }: { zones: ZoneDisplay[] }) {
   return (
-    <View
-      style={[
-        s.zoneWrap,
-        { justifyContent: "center", flexWrap: "wrap" },
-        style,
-      ]}
-      testID={testID}
-      accessibilityLabel="Zone squares"
-    >
-      {Array.from({ length: 12 }, (_, i) => i + 1).map((n) => {
-        const isOn = active.includes(n);
-        const boxStyle = [
-          s.zoneBox,
-          {
-            width: SZ,
-            height: SZ,
-            borderRadius: Math.round(SZ * 0.25),
-          },
-          isOn ? s.zoneOn : s.zoneOff,
-        ];
+    <View style={s.zoneGrid}>
+      {zones.map((zone) => (
+        <View
+          key={zone.zoneId}
+          style={[s.zoneCard, zone.isActive ? s.zoneCardOn : s.zoneCardOff]}
+        >
+          <Text style={[s.zoneCardTitle, !zone.isActive && s.zoneCardTitleOff]}>
+            Zone {zone.zoneId}
+          </Text>
 
-        return (
-          <View key={n} style={{ marginRight: gap, marginBottom: gap }}>
-            <View style={boxStyle} testID={`zone-${n}`}>
-              {showNumbers && (
-                <Text
-                  style={
-                    isOn ? [s.zoneNumOn, numStyle] : [s.zoneNumOff, numStyle]
-                  }
-                >
-                  {n}
-                </Text>
-              )}
-            </View>
-          </View>
-        );
-      })}
+          {zone.isActive ? (
+            <>
+              <Text style={s.zoneCardValue}>{zone.powerLevel}%</Text>
+              <Text style={s.zoneCardLabel}>Power</Text>
+
+              <Text style={[s.zoneCardValue, { marginTop: 6 }]}>
+                {zone.frequencyHz} Hz
+              </Text>
+              <Text style={s.zoneCardLabel}>Frequency</Text>
+            </>
+          ) : (
+            <>
+              <Text style={s.zoneCardInactive}>Off</Text>
+              <Text style={s.zoneCardInactiveSub}>Not selected</Text>
+            </>
+          )}
+        </View>
+      ))}
     </View>
   );
 }
@@ -502,12 +451,12 @@ const s = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 20,
-    paddingTop: 18,
-    marginBottom: 12,
+    paddingTop: 26,
+    marginBottom: 20,
   },
   title: {
     color: AppColors.text,
-    fontSize: 24,
+    fontSize: 30,
     fontWeight: "800",
     position: "absolute",
     left: 0,
@@ -515,7 +464,7 @@ const s = StyleSheet.create({
     textAlign: "center",
     zIndex: 1,
   },
-  row: { flexDirection: "row", gap: 18, marginBottom: 20 },
+  row: { flexDirection: "row", gap: 18, marginBottom: 14 },
   card: {
     flex: 1,
     backgroundColor: AppColors.card,
@@ -533,54 +482,104 @@ const s = StyleSheet.create({
     marginBottom: 8,
   },
   cardValueLg: { fontSize: 36 },
-  cardLabel: { color: AppColors.textMuted, fontSize: 14, fontWeight: "600" },
+  cardLabel: {
+    color: AppColors.textMuted,
+    fontSize: 14,
+    fontWeight: "600",
+  },
   zonesWrap: {
-    marginTop: 14,
-    marginBottom: 26,
-    alignItems: "center",
+    marginTop: 4,
+    marginBottom: 12,
     width: "100%",
   },
   zonesTitle: {
     color: AppColors.text,
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: "800",
     marginBottom: 12,
     textAlign: "center",
     width: "100%",
   },
-  zoneWrap: {
+  zoneGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    justifyContent: "center",
+    justifyContent: "space-between",
   },
-  zoneBox: {
+  zoneCard: {
+    width: "48%",
+    height: 104,
+    borderRadius: 12,
+    borderWidth: 1,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    marginBottom: 8,
     alignItems: "center",
     justifyContent: "center",
-    borderWidth: 1,
-    borderColor: AppColors.zoneBorder,
   },
-  zoneOn: {
-    backgroundColor: AppColors.zoneOn,
+  zoneCardOn: {
+    backgroundColor: AppColors.card,
     borderColor: AppColors.zoneBorderOn,
   },
-  zoneOff: { backgroundColor: AppColors.zoneOff },
-  zoneNumOn: { color: AppColors.text, fontWeight: "800", fontSize: 14 },
-  zoneNumOff: { color: AppColors.zoneNumOff, fontWeight: "700", fontSize: 14 },
-
+  zoneCardOff: {
+    backgroundColor: AppColors.zoneOff,
+    borderColor: AppColors.border,
+    opacity: 0.82,
+  },
+  zoneCardTitle: {
+    color: AppColors.text,
+    fontSize: 16,
+    fontWeight: "800",
+    marginBottom: 1,
+    textAlign: "center",
+  },
+  zoneCardTitleOff: {
+    color: AppColors.textMuted,
+  },
+  zoneCardValue: {
+    color: AppColors.text,
+    fontSize: 18,
+    fontWeight: "800",
+    textAlign: "center",
+    lineHeight: 18,
+  },
+  zoneCardLabel: {
+    color: AppColors.textMuted,
+    fontSize: 10,
+    fontWeight: "600",
+    textAlign: "center",
+    lineHeight: 10,
+  },
+  zoneCardInactive: {
+    color: AppColors.textMuted,
+    fontSize: 16,
+    fontWeight: "700",
+    marginTop: 0,
+    textAlign: "center",
+  },
+  zoneCardInactiveSub: {
+    color: AppColors.textMuted,
+    fontSize: 9,
+    fontWeight: "500",
+    marginTop: 0,
+    textAlign: "center",
+  },
   saveBtn: {
     width: "100%",
-    paddingVertical: 22,
+    paddingVertical: 18,
     borderRadius: 16,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: AppColors.primary,
   },
-  saveBtnTxt: { fontSize: 26, color: AppColors.text, fontWeight: "900" },
-
+  saveBtnTxt: {
+    fontSize: 22,
+    color: AppColors.text,
+    fontWeight: "900",
+  },
   statusWrap: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 14,
+    marginBottom: 8,
   },
   statusDot: {
     width: 10,
@@ -594,8 +593,11 @@ const s = StyleSheet.create({
   statusIdle: { backgroundColor: AppColors.statusIdle },
   statusPaused: { backgroundColor: AppColors.statusPaused },
   statusComplete: { backgroundColor: AppColors.button },
-  statusText: { color: AppColors.textMuted, fontSize: 16, fontWeight: "700" },
-
+  statusText: {
+    color: AppColors.textMuted,
+    fontSize: 16,
+    fontWeight: "700",
+  },
   bottomRowFixed: {
     flexDirection: "row",
     gap: 16,
@@ -609,7 +611,7 @@ const s = StyleSheet.create({
     flex: 1,
     backgroundColor: AppColors.primary,
     borderRadius: 16,
-    paddingVertical: 20,
+    paddingVertical: 16,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -617,13 +619,24 @@ const s = StyleSheet.create({
     flex: 1,
     backgroundColor: AppColors.button,
     borderRadius: 16,
-    paddingVertical: 20,
+    paddingVertical: 16,
     alignItems: "center",
     justifyContent: "center",
   },
-  btnPrimaryTxt: { color: AppColors.text, fontSize: 20, fontWeight: "800" },
-  btnSecondaryTxt: { color: AppColors.text, fontSize: 20, fontWeight: "800" },
-  btnPressed: { opacity: 0.9, backgroundColor: AppColors.primaryPressed },
+  btnPrimaryTxt: {
+    color: AppColors.text,
+    fontSize: 20,
+    fontWeight: "800",
+  },
+  btnSecondaryTxt: {
+    color: AppColors.text,
+    fontSize: 20,
+    fontWeight: "800",
+  },
+  btnPressed: {
+    opacity: 0.9,
+    backgroundColor: AppColors.primaryPressed,
+  },
 });
 
 function pad2(n: number) {
