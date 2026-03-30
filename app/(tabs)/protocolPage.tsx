@@ -13,6 +13,10 @@ import {
 } from "react-native";
 import { styles } from "../../styles/sharedStyles";
 
+import {
+  ProtocolJsonExportButton,
+  ProtocolJsonImportButton,
+} from "@/components/protocolJsonTransfer";
 import { AppColors } from "@/constants/theme";
 import { useProtocol } from "../../context/ProtcolStorageContext";
 import {
@@ -158,18 +162,34 @@ export default function ProtocolsPage() {
     router.push("/protocolRunPage");
   };
 
-  const renderItem = ({ item }: { item: ProtocolCard }) => (
-    <Card
-      item={item}
-      onLoad={onLoad}
-      onEdit={onEdit}
-      onDelete={handleDeleteProtocol}
-    />
-  );
+  const renderItem = ({ item }: { item: ProtocolCard }) => {
+    const full = dbProtocols.find((p) => String(p.id) === item.id);
+    return (
+      <Card
+        item={item}
+        protocolForExport={full}
+        onLoad={onLoad}
+        onEdit={onEdit}
+        onDelete={handleDeleteProtocol}
+      />
+    );
+  };
 
   return (
     <View style={styles.screen}>
-      <Text style={styles.title}>Protocols</Text>
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          marginBottom: 16,
+        }}
+      >
+        <View style={{ minWidth: 44 }} />
+        <Text style={[styles.title, { flex: 1, marginBottom: 0 }]}>
+          Protocols
+        </Text>
+        <ProtocolJsonImportButton onImported={() => refreshProtocols()} />
+      </View>
 
       <FlatList
         data={cards}
@@ -189,11 +209,13 @@ export default function ProtocolsPage() {
 
 function Card({
   item,
+  protocolForExport,
   onLoad,
   onEdit,
   onDelete,
 }: {
   item: ProtocolCard;
+  protocolForExport?: DbProtocol;
   onLoad: (p: ProtocolCard) => void;
   onEdit: (p: ProtocolCard) => void;
   onDelete: (id: number, name: string) => void;
@@ -231,19 +253,19 @@ function Card({
         style={
           isNarrow
             ? {
-                flexDirection: "row",
-                alignItems: "center",
-                gap: 10,
-                marginTop: 8,
-                alignSelf: "stretch",
-              }
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 10,
+              marginTop: 8,
+              alignSelf: "stretch",
+            }
             : {
-                flexDirection: "row",
-                alignItems: "center",
-                gap: 10,
-                marginLeft: 16,
-                alignSelf: "center",
-              }
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 10,
+              marginLeft: 16,
+              alignSelf: "center",
+            }
         }
       >
         <TouchableOpacity
@@ -251,12 +273,12 @@ function Card({
             styles.loadBtn,
             isNarrow
               ? {
-                  flex: 1,
-                  marginLeft: 0,
-                  marginTop: 0,
-                  alignSelf: "stretch",
-                  alignItems: "center",
-                }
+                flex: 1,
+                marginLeft: 0,
+                marginTop: 0,
+                alignSelf: "stretch",
+                alignItems: "center",
+              }
               : { marginLeft: 0 },
           ]}
           onPress={() => onLoad(item)}
@@ -264,6 +286,10 @@ function Card({
         >
           <Text style={styles.loadBtnText}>Load</Text>
         </TouchableOpacity>
+
+        {item.id && protocolForExport ? (
+          <ProtocolJsonExportButton protocol={protocolForExport} />
+        ) : null}
 
         {item.id ? (
           <Pressable
