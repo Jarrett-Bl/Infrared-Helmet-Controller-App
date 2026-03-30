@@ -20,7 +20,7 @@ export default function PowerLevelSection() {
 
   return (
     <View style={styles.section}>
-      <Text style={[styles.title, { color: AppColors.text, marginTop: 16 }]}>
+      <Text style={[styles.title, { color: AppColors.text }]}>
         Power Level (%)
       </Text>
 
@@ -68,15 +68,17 @@ export default function PowerLevelSection() {
 
 const styles = StyleSheet.create({
   section: {
+    flex: 1,
     paddingHorizontal: 16,
     paddingTop: 8,
-    paddingBottom: 16,
+    paddingBottom: 8,
   },
   title: { fontSize: 24, fontWeight: '600', textAlign: 'center', padding: 10 },
   grid: {
     flexDirection: 'row',
+    flex: 1,
     marginTop: 8,
-    marginBottom: 16,
+    marginBottom: 0,
   },
   col: {
     flex: 1,

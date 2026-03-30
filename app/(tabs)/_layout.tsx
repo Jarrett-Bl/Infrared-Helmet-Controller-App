@@ -1,7 +1,7 @@
 import { HapticTab } from "@/components/haptic-tab";
 import { Colors } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
-import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { Stack, Tabs } from "expo-router";
 import React, { createContext, useState } from "react";
 
@@ -59,19 +59,6 @@ export default function TabLayout() {
           title: "Helmet Control",
           tabBarIcon: ({ color }) => (
             <Ionicons name="phone-portrait-outline" size={22} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="settings"
-        options={{
-          title: "Settings",
-          tabBarIcon: ({ color }) => (
-            <MaterialCommunityIcons
-              name="cog-outline"
-              size={22}
-              color={color}
-            />
           ),
         }}
       />
