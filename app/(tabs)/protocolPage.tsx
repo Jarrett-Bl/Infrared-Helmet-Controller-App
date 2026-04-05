@@ -1,11 +1,13 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router, useFocusEffect } from "expo-router";
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import {
   Alert,
   FlatList,
+  Modal,
   Platform,
   Pressable,
+  StyleSheet,
   Text,
   TouchableOpacity,
   View,
@@ -14,8 +16,8 @@ import {
 import { styles } from "../../styles/sharedStyles";
 
 import {
-  ProtocolJsonExportButton,
   ProtocolJsonImportButton,
+  shareProtocolJsonFile,
 } from "@/components/protocolJsonTransfer";
 import { AppColors } from "@/constants/theme";
 import { useProtocol } from "../../context/ProtcolStorageContext";
@@ -207,6 +209,9 @@ export default function ProtocolsPage() {
   );
 }
 
+const OVERFLOW_MENU_WIDTH = 216;
+const OVERFLOW_MENU_EST_HEIGHT = 172;
+
 function Card({
   item,
   protocolForExport,
@@ -220,9 +225,30 @@ function Card({
   onEdit: (p: ProtocolCard) => void;
   onDelete: (id: number, name: string) => void;
 }) {
-  const { width } = useWindowDimensions();
-  const isNarrow = width < 410;
+  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
+  const isNarrow = windowWidth < 410;
   const protocolId = Number(item.id);
+
+  const overflowAnchorRef = useRef<View>(null);
+  const [menuVisible, setMenuVisible] = useState(false);
+  const [menuPos, setMenuPos] = useState({ left: 0, top: 0 });
+
+  const closeMenu = useCallback(() => setMenuVisible(false), []);
+
+  const openOverflowMenu = useCallback(() => {
+    overflowAnchorRef.current?.measureInWindow((x, y, w, h) => {
+      const rightAlignedLeft = Math.max(
+        8,
+        Math.min(x + w - OVERFLOW_MENU_WIDTH, windowWidth - OVERFLOW_MENU_WIDTH - 8),
+      );
+      let top = y + h + 4;
+      if (top + OVERFLOW_MENU_EST_HEIGHT > windowHeight - 8) {
+        top = Math.max(8, y - OVERFLOW_MENU_EST_HEIGHT - 4);
+      }
+      setMenuPos({ left: rightAlignedLeft, top });
+      setMenuVisible(true);
+    });
+  }, [windowWidth, windowHeight]);
 
   return (
     <View
@@ -287,55 +313,152 @@ function Card({
           <Text style={styles.loadBtnText}>Load</Text>
         </TouchableOpacity>
 
-        {item.id && protocolForExport ? (
-          <ProtocolJsonExportButton protocol={protocolForExport} />
-        ) : null}
-
         {item.id ? (
-          <Pressable
-            onPress={() => onEdit(item)}
-            hitSlop={10}
-            accessibilityRole="button"
-            accessibilityLabel="Edit protocol"
-            testID={`btn-edit-protocol-${item.id}`}
-            style={{
-              padding: 8,
-              justifyContent: "center",
-              alignItems: "center",
-            }}
-          >
-            <Ionicons
-              name="create-outline"
-              size={22}
-              color={AppColors.statusIdle}
-            />
-          </Pressable>
-        ) : null}
-
-        {item.id ? (
-          <Pressable
-            onPress={() => onDelete(protocolId, item.name)}
-            hitSlop={10}
-            accessibilityRole="button"
-            accessibilityLabel="Delete protocol"
-            testID={`btn-delete-protocol-${item.id}`}
-            style={{
-              padding: 8,
-              justifyContent: "center",
-              alignItems: "center",
-            }}
-          >
-            <Ionicons
-              name="trash-outline"
-              size={22}
-              color={AppColors.statusIdle}
-            />
-          </Pressable>
+          <View ref={overflowAnchorRef} collapsable={false}>
+            <Pressable
+              onPress={openOverflowMenu}
+              hitSlop={10}
+              accessibilityRole="button"
+              accessibilityLabel="More actions for protocol"
+              testID={`btn-protocol-overflow-${item.id}`}
+              style={{
+                padding: 8,
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <Ionicons
+                name="ellipsis-vertical"
+                size={22}
+                color={AppColors.statusIdle}
+              />
+            </Pressable>
+          </View>
         ) : null}
       </View>
+
+      <Modal
+        visible={menuVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={closeMenu}
+      >
+        <View style={StyleSheet.absoluteFillObject}>
+          <Pressable
+            style={StyleSheet.absoluteFillObject}
+            onPress={closeMenu}
+            accessibilityLabel="Dismiss menu"
+          />
+          <View
+            style={[
+              overflowMenuStyles.panel,
+              {
+                left: menuPos.left,
+                top: menuPos.top,
+                width: OVERFLOW_MENU_WIDTH,
+              },
+            ]}
+          >
+            <Pressable
+              testID={`btn-edit-protocol-${item.id}`}
+              accessibilityRole="button"
+              accessibilityLabel="Edit protocol"
+              style={overflowMenuStyles.row}
+              onPress={() => {
+                closeMenu();
+                onEdit(item);
+              }}
+            >
+              <Ionicons
+                name="create-outline"
+                size={22}
+                color={AppColors.statusIdle}
+              />
+              <Text style={overflowMenuStyles.rowLabel}>Edit</Text>
+            </Pressable>
+
+            {protocolForExport ? (
+              <Pressable
+                testID={`btn-export-protocol-json-${protocolForExport.id ?? "new"}`}
+                accessibilityRole="button"
+                accessibilityLabel="Export protocol to JSON"
+                style={overflowMenuStyles.row}
+                onPress={() => {
+                  closeMenu();
+                  void shareProtocolJsonFile(protocolForExport);
+                }}
+              >
+                <Ionicons
+                  name="share-outline"
+                  size={22}
+                  color={AppColors.statusIdle}
+                />
+                <Text style={overflowMenuStyles.rowLabel}>Export</Text>
+              </Pressable>
+            ) : null}
+
+            <Pressable
+              testID={`btn-delete-protocol-${item.id}`}
+              accessibilityRole="button"
+              accessibilityLabel="Delete protocol"
+              style={overflowMenuStyles.row}
+              onPress={() => {
+                closeMenu();
+                onDelete(protocolId, item.name);
+              }}
+            >
+              <Ionicons
+                name="trash-outline"
+                size={22}
+                color={AppColors.statusIdle}
+              />
+              <Text
+                style={[overflowMenuStyles.rowLabel, overflowMenuStyles.destructiveLabel]}
+              >
+                Delete
+              </Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
+
+const overflowMenuStyles = StyleSheet.create({
+  panel: {
+    position: "absolute",
+    backgroundColor: AppColors.card,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: AppColors.border,
+    paddingVertical: 4,
+    ...Platform.select({
+      android: { elevation: 8 },
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.25,
+        shadowRadius: 8,
+      },
+      default: {},
+    }),
+  },
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+  },
+  rowLabel: {
+    color: AppColors.text,
+    fontSize: 16,
+  },
+  destructiveLabel: {
+    color: AppColors.statusIdle,
+  },
+});
 
 function ZoneGrid({ selected }: { selected: number[] }) {
   const { width } = useWindowDimensions();
