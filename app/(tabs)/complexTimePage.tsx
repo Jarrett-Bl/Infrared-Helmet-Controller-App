@@ -8,12 +8,12 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useProtocol } from "../../context/ProtcolStorageContext";
 import { styles } from "../../styles/sharedStyles";
 
-export default function SimpleTimePage() {
+export default function ComplexTimePage() {
   const [minutes, setMinutes] = useState(15);
   const { protocol, initProtocol, setTime } = useProtocol();
 
   useEffect(() => {
-    if (!protocol || protocol.editorType !== "simple") return;
+    if (!protocol || protocol.editorType !== "complex") return;
 
     if (typeof protocol.timeMin === "number") {
       setMinutes(protocol.timeMin);
@@ -22,19 +22,45 @@ export default function SimpleTimePage() {
 
   const handleNext = () => {
     if (!protocol) {
-      initProtocol("simple");
+      initProtocol("complex");
     }
 
     setTime(minutes, 0);
     router.push({
       pathname: "/runPage",
-      params: { flow: "simple" },
+      params: { flow: "complex" },
     });
   };
 
   return (
     <SafeAreaView style={styles.screen}>
       <StatusBar style="light" backgroundColor={AppColors.background} />
+
+      <Pressable
+        onPress={() => router.push("/complexZoneSelection")}
+        style={{
+          position: "absolute",
+          left: 20,
+          top: 35,
+          width: 48,
+          height: 48,
+          justifyContent: "center",
+          alignItems: "flex-start",
+          zIndex: 2,
+        }}
+        hitSlop={10}
+      >
+        <Text
+          style={{
+            color: AppColors.text,
+            fontSize: 28,
+            fontWeight: "800",
+          }}
+        >
+          {"<"}
+        </Text>
+      </Pressable>
+
       <Text style={styles.title}>Select Your Session Time</Text>
 
       <View style={lStyles.body}>
@@ -103,13 +129,6 @@ export default function SimpleTimePage() {
     </SafeAreaView>
   );
 }
-
-export const options = {
-  title: "Time Selection Basic User",
-  headerStyle: { backgroundColor: AppColors.background },
-  headerTintColor: AppColors.text,
-  contentStyle: { backgroundColor: AppColors.background },
-};
 
 const lStyles = StyleSheet.create({
   body: { flex: 1, justifyContent: "space-between" },

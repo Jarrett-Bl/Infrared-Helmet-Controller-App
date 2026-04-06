@@ -1,4 +1,5 @@
-import { router } from "expo-router";
+import { AppColors } from "@/constants/theme";
+import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useCallback, useMemo, useState } from "react";
 import {
@@ -15,27 +16,45 @@ import { styles } from "../../styles/sharedStyles";
 type ZoneGroup = { id: number; zones: number[]; color: string };
 
 export default function ComplexZoneSelectionPage() {
-  const { initProtocol, setZonesFromSelection } = useProtocol();
+  const params = useLocalSearchParams();
+  const { protocol, initProtocol } = useProtocol();
 
   const groupColors = [
-    "#04D9FF", // cyan
-    "#BC13FE", // purple
-    "#FE019A", // pink
-    "#FFA500", // orange
-    "#CFFF04", // lime-yellow
-    "#ff073a", // red
-    "#40E0D0", // turquoise
-    "#FFC0CB", // soft pink
-    "#8B4513", // brown
-    "#000000", // dark green (fine — not selection green)
+    "#04D9FF",
+    "#BC13FE",
+    "#FE019A",
+    "#FFA500",
+    "#CFFF04",
+    "#ff073a",
+    "#40E0D0",
+    "#FFC0CB",
+    "#8B4513",
+    "#000000",
     "#FE4164",
-    "#7B68EE", // slate blue (extra safety color)
+    "#7B68EE",
   ];
 
   const [selectedZones, setSelectedZones] = useState<number[]>([]);
   const [groupedZones, setGroupedZones] = useState<number[]>([]);
   const [groups, setGroups] = useState<ZoneGroup[]>([]);
   const [selectedGroupId, setSelectedGroupId] = useState<number | null>(null);
+
+  useFocusEffect(
+    useCallback(() => {
+      const isFresh = params.fresh === "1";
+
+      if (isFresh) {
+        setSelectedZones([]);
+        setGroupedZones([]);
+        setGroups([]);
+        setSelectedGroupId(null);
+      }
+
+      if (!protocol) {
+        initProtocol("complex");
+      }
+    }, [params.fresh, protocol, initProtocol]),
+  );
 
   const zones = useMemo(() => Array.from({ length: 12 }, (_, i) => i + 1), []);
 
@@ -69,7 +88,6 @@ export default function ComplexZoneSelectionPage() {
     });
   }, []);
 
-  // choose the first unused color from the palette (prevents duplicates after deletions)
   const pickNextColor = useCallback((): string => {
     const used = new Set(groups.map((g) => g.color));
     return (
@@ -81,7 +99,6 @@ export default function ComplexZoneSelectionPage() {
   const createGroup = useCallback(() => {
     if (selectedZones.length === 0) return;
 
-    // disallow overlaps: if any selected zone is already grouped, do nothing
     const overlaps = selectedZones.some((z) => groupedZones.includes(z));
     if (overlaps) return;
 
@@ -91,19 +108,17 @@ export default function ComplexZoneSelectionPage() {
 
     setGroups((prev) => [
       ...prev,
-      { id: newGroupId, zones: selectedZones, color: newColor },
+      { id: newGroupId, zones: [...selectedZones], color: newColor },
     ]);
     setGroupedZones((prev) => Array.from(new Set([...prev, ...selectedZones])));
 
-    // clear selection after grouping
     setSelectedGroupId(null);
     setSelectedZones([]);
   }, [selectedZones, groupedZones, groups, pickNextColor]);
 
   const deleteGroup = useCallback(() => {
-    if (selectedZones.length === 0) return;
+    if (selectedZones.length === 0 && selectedGroupId == null) return;
 
-    // if a group is selected, delete that; otherwise if user tapped one grouped zone, delete its group
     const groupToDelete =
       (selectedGroupId != null
         ? groups.find((g) => g.id === selectedGroupId)
@@ -116,7 +131,6 @@ export default function ComplexZoneSelectionPage() {
       prev.filter((z) => !groupToDelete.zones.includes(z)),
     );
 
-    // clear selection after deletion
     setSelectedGroupId(null);
     setSelectedZones([]);
   }, [selectedZones, groups, selectedGroupId]);
@@ -126,17 +140,44 @@ export default function ComplexZoneSelectionPage() {
     [selectedGroupId],
   );
 
+  const canGoNext = useMemo(() => {
+    return !!protocol && Object.keys(protocol.Zones ?? {}).length > 0;
+  }, [protocol]);
+
   return (
     <SafeAreaView style={styles.screen}>
       <StatusBar style="light" />
 
-      {/* Header */}
+      <Pressable
+        onPress={() => router.push("/bluetoothDevicePairing")}
+        style={{
+          position: "absolute",
+          left: 20,
+          top: 35,
+          width: 48,
+          height: 48,
+          justifyContent: "center",
+          alignItems: "flex-start",
+          zIndex: 2,
+        }}
+        hitSlop={10}
+      >
+        <Text
+          style={{
+            color: AppColors.text,
+            fontSize: 28,
+            fontWeight: "800",
+          }}
+        >
+          {"<"}
+        </Text>
+      </Pressable>
+
       <View style={styles.header}>
         <Text style={styles.title}>Zone Selection</Text>
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContainer}>
-        {/* Zone Grid */}
         <View style={styles.gridContainer}>
           {zones.map((zoneNumber, index) => {
             const selected = isSelected(zoneNumber);
@@ -156,29 +197,24 @@ export default function ComplexZoneSelectionPage() {
                 onPress={() => {
                   const tappedGroup = group;
 
-                  // Tap on grouped zone: select/unselect whole group
                   if (tappedGroup) {
                     if (selectedGroupId === tappedGroup.id) {
-                      // unselect group
                       setSelectedGroupId(null);
                       setSelectedZones([]);
                       return;
                     }
-                    // select this group
+
                     setSelectedGroupId(tappedGroup.id);
                     setSelectedZones(tappedGroup.zones);
                     return;
                   }
 
-                  // Tap on ungrouped zone:
-                  // If a group is selected, clear it and start a new selection
                   if (selectedGroupId !== null) {
                     setSelectedGroupId(null);
                     setSelectedZones([zoneNumber]);
                     return;
                   }
 
-                  // Otherwise normal multi-select
                   toggleZone(zoneNumber);
                 }}
                 activeOpacity={0.7}
@@ -205,7 +241,6 @@ export default function ComplexZoneSelectionPage() {
           })}
         </View>
 
-        {/* Set Group */}
         <Pressable
           onPress={createGroup}
           disabled={
@@ -224,7 +259,6 @@ export default function ComplexZoneSelectionPage() {
           <Text style={styles.selectedText}>Set Group</Text>
         </Pressable>
 
-        {/* Delete Group */}
         <Pressable
           onPress={deleteGroup}
           disabled={selectedGroupId == null}
@@ -237,22 +271,17 @@ export default function ComplexZoneSelectionPage() {
           <Text style={styles.selectedText}>Delete Group</Text>
         </Pressable>
 
-        {/* Controls (ONLY for a selected group) */}
         <Pressable
           disabled={!canOpenControls}
           onPress={() => {
             const selectedGroup = groups.find((g) => g.id === selectedGroupId);
             if (!selectedGroup) return;
 
-            // ensure protocol exists + zones set for this group
-            initProtocol();
-            setZonesFromSelection(selectedGroup.zones);
-
             router.push({
               pathname: "/complexControlPage",
               params: {
                 zoneGroup: selectedGroup.color,
-                zoneIds: selectedGroup.zones.join(","), // optional if your control page wants it later
+                zoneIds: selectedGroup.zones.join(","),
               },
             });
           }}
@@ -265,12 +294,13 @@ export default function ComplexZoneSelectionPage() {
           <Text style={styles.selectedText}>Controls</Text>
         </Pressable>
 
-        {/* Next */}
         <Pressable
-          onPress={() => router.push({ pathname: "/simpleTimePage" })}
+          onPress={() => router.push({ pathname: "/complexTimePage" })}
+          disabled={!canGoNext}
           style={({ pressed }) => [
             styles.selectedContainer,
             { opacity: pressed ? 0.8 : 1 },
+            !canGoNext && { opacity: 0.35 },
           ]}
         >
           <Text style={styles.selectedText}>Next</Text>
