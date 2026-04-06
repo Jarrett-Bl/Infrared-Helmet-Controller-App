@@ -4,11 +4,13 @@ import { useCallback, useRef, useState } from "react";
 import {
   Alert,
   FlatList,
+  KeyboardAvoidingView,
   Modal,
   Platform,
   Pressable,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
   useWindowDimensions,
@@ -20,6 +22,7 @@ import {
   shareProtocolJsonFile,
 } from "@/components/protocolJsonTransfer";
 import { AppColors } from "@/constants/theme";
+import { renameProtocolSaving } from "@/lib/protocolRename";
 import { useProtocol } from "../../context/ProtcolStorageContext";
 import {
   getProtocols,
@@ -137,6 +140,15 @@ export default function ProtocolsPage() {
     [deleteProtocol, refreshProtocols],
   );
 
+  const handleRenameProtocol = useCallback(
+    async (id: number, protocol: DbProtocol, newName: string) => {
+      const ok = await renameProtocolSaving(id, protocol, newName);
+      if (ok) await refreshProtocols();
+      return ok;
+    },
+    [refreshProtocols],
+  );
+
   const onEdit = (card: ProtocolCard) => {
     const full = dbProtocols.find((p) => String(p.id) === card.id);
     if (!full) {
@@ -173,6 +185,7 @@ export default function ProtocolsPage() {
         onLoad={onLoad}
         onEdit={onEdit}
         onDelete={handleDeleteProtocol}
+        onRename={handleRenameProtocol}
       />
     );
   };
@@ -210,7 +223,7 @@ export default function ProtocolsPage() {
 }
 
 const OVERFLOW_MENU_WIDTH = 216;
-const OVERFLOW_MENU_EST_HEIGHT = 172;
+const OVERFLOW_MENU_EST_HEIGHT = 220;
 
 function Card({
   item,
@@ -218,12 +231,18 @@ function Card({
   onLoad,
   onEdit,
   onDelete,
+  onRename,
 }: {
   item: ProtocolCard;
   protocolForExport?: DbProtocol;
   onLoad: (p: ProtocolCard) => void;
   onEdit: (p: ProtocolCard) => void;
   onDelete: (id: number, name: string) => void;
+  onRename: (
+    id: number,
+    protocol: DbProtocol,
+    newName: string,
+  ) => boolean | Promise<boolean>;
 }) {
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
   const isNarrow = windowWidth < 410;
@@ -232,6 +251,8 @@ function Card({
   const overflowAnchorRef = useRef<View>(null);
   const [menuVisible, setMenuVisible] = useState(false);
   const [menuPos, setMenuPos] = useState({ left: 0, top: 0 });
+  const [renameModalVisible, setRenameModalVisible] = useState(false);
+  const [renameDraft, setRenameDraft] = useState("");
 
   const closeMenu = useCallback(() => setMenuVisible(false), []);
 
@@ -249,6 +270,18 @@ function Card({
       setMenuVisible(true);
     });
   }, [windowWidth, windowHeight]);
+
+  const openRenameModal = useCallback(() => {
+    if (!protocolForExport) return;
+    setRenameDraft(protocolForExport.name);
+    setRenameModalVisible(true);
+  }, [protocolForExport]);
+
+  const submitRename = useCallback(async () => {
+    if (!protocolForExport) return;
+    const ok = await onRename(protocolId, protocolForExport, renameDraft);
+    if (ok) setRenameModalVisible(false);
+  }, [renameDraft, protocolForExport, protocolId, onRename]);
 
   return (
     <View
@@ -379,6 +412,26 @@ function Card({
 
             {protocolForExport ? (
               <Pressable
+                testID={`btn-rename-protocol-${item.id}`}
+                accessibilityRole="button"
+                accessibilityLabel="Rename protocol"
+                style={overflowMenuStyles.row}
+                onPress={() => {
+                  closeMenu();
+                  openRenameModal();
+                }}
+              >
+                <Ionicons
+                  name="pencil-outline"
+                  size={22}
+                  color={AppColors.statusIdle}
+                />
+                <Text style={overflowMenuStyles.rowLabel}>Rename</Text>
+              </Pressable>
+            ) : null}
+
+            {protocolForExport ? (
+              <Pressable
                 testID={`btn-export-protocol-json-${protocolForExport.id ?? "new"}`}
                 accessibilityRole="button"
                 accessibilityLabel="Export protocol to JSON"
@@ -421,9 +474,137 @@ function Card({
           </View>
         </View>
       </Modal>
+
+      <Modal
+        visible={renameModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setRenameModalVisible(false)}
+      >
+        <KeyboardAvoidingView
+          style={renameModalStyles.keyboardRoot}
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
+        >
+          <View style={renameModalStyles.centerWrap}>
+            <Pressable
+              style={renameModalStyles.backdrop}
+              onPress={() => setRenameModalVisible(false)}
+              accessibilityLabel="Dismiss rename"
+            />
+            <View style={renameModalStyles.sheet} accessibilityViewIsModal>
+              <Text style={renameModalStyles.sheetTitle}>Rename protocol</Text>
+              <TextInput
+                value={renameDraft}
+                onChangeText={setRenameDraft}
+                placeholder="Protocol name"
+                placeholderTextColor={AppColors.textMuted}
+                autoFocus
+                selectTextOnFocus
+                style={renameModalStyles.input}
+                autoCorrect={false}
+                accessibilityLabel="New protocol name"
+              />
+              <View style={renameModalStyles.sheetActions}>
+                <Pressable
+                  onPress={() => setRenameModalVisible(false)}
+                  style={renameModalStyles.sheetBtn}
+                  accessibilityRole="button"
+                  accessibilityLabel="Cancel rename"
+                >
+                  <Text style={renameModalStyles.sheetBtnTextMuted}>Cancel</Text>
+                </Pressable>
+                <Pressable
+                  onPress={() => void submitRename()}
+                  style={renameModalStyles.sheetBtnPrimary}
+                  accessibilityRole="button"
+                  accessibilityLabel="Save protocol name"
+                >
+                  <Text style={renameModalStyles.sheetBtnTextPrimary}>Save</Text>
+                </Pressable>
+              </View>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
     </View>
   );
 }
+
+const renameModalStyles = StyleSheet.create({
+  keyboardRoot: {
+    flex: 1,
+  },
+  centerWrap: {
+    flex: 1,
+    justifyContent: "center",
+    paddingHorizontal: 24,
+  },
+  backdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0,0,0,0.45)",
+  },
+  sheet: {
+    zIndex: 1,
+    borderRadius: 14,
+    padding: 20,
+    backgroundColor: AppColors.card,
+    borderWidth: 1,
+    borderColor: AppColors.border,
+    ...Platform.select({
+      android: { elevation: 12 },
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.3,
+        shadowRadius: 12,
+      },
+      default: {},
+    }),
+  },
+  sheetTitle: {
+    color: AppColors.text,
+    fontSize: 18,
+    fontWeight: "600",
+    marginBottom: 14,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: AppColors.border,
+    borderRadius: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    fontSize: 16,
+    color: AppColors.text,
+    backgroundColor: AppColors.button,
+    marginBottom: 18,
+  },
+  sheetActions: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    gap: 12,
+  },
+  sheetBtn: {
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+  },
+  sheetBtnPrimary: {
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+    backgroundColor: AppColors.primary,
+  },
+  sheetBtnTextMuted: {
+    color: AppColors.textMuted,
+    fontSize: 16,
+    fontWeight: "500",
+  },
+  sheetBtnTextPrimary: {
+    color: AppColors.text,
+    fontSize: 16,
+    fontWeight: "600",
+  },
+});
 
 const overflowMenuStyles = StyleSheet.create({
   panel: {
