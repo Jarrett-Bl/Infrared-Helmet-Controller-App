@@ -1,4 +1,5 @@
 import { AppColors } from "@/constants/theme";
+import { router, useLocalSearchParams } from "expo-router";
 import React, {
   useCallback,
   useEffect,
@@ -10,7 +11,6 @@ import {
   Alert,
   Platform,
   Pressable,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
@@ -19,6 +19,7 @@ import {
   ViewStyle,
   useWindowDimensions,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useProtocol } from "../../context/ProtcolStorageContext";
 
 type SessionSettings = {
@@ -38,6 +39,8 @@ type ZoneDisplay = {
 };
 
 export default function RunPage() {
+  const params = useLocalSearchParams();
+  const flow = params.flow;
   const { protocol, saveProtocol, editingProtocolId } = useProtocol();
   const { width, height } = useWindowDimensions();
   const baseWidth = 390;
@@ -46,8 +49,8 @@ export default function RunPage() {
     0.65,
     Math.min(1, Math.min(width / baseWidth, height / baseHeight)),
   );
-  const bottomControlsHeight = Math.round(84 * globalScale);
-  const bottomOffset = Platform.OS === "android" ? 28 : 16;
+  const bottomControlsHeight = Math.round(72 * globalScale);
+  const bottomOffset = Platform.OS === "android" ? 18 : 10;
   const isEditing = editingProtocolId != null;
 
   useEffect(() => {
@@ -219,8 +222,22 @@ export default function RunPage() {
   }, [saveProtocol, isEditing]);
 
   return (
-    <SafeAreaView style={s.screen}>
+    <SafeAreaView style={s.screen} edges={["top", "left", "right"]}>
       <View style={s.topBar}>
+        <Pressable
+          onPress={() => {
+            if (flow === "complex") {
+              router.push("/complexTimePage");
+            } else {
+              router.push("/simpleTimePage");
+            }
+          }}
+          style={s.headerBack}
+          hitSlop={10}
+        >
+          <Text style={s.headerBackText}>{"<"}</Text>
+        </Pressable>
+
         <Text style={s.title} accessibilityRole="header" testID="hdr-session">
           Your Session
         </Text>
@@ -229,10 +246,12 @@ export default function RunPage() {
       <ScrollView
         style={{ flex: 1 }}
         contentContainerStyle={[
-          { paddingHorizontal: 20, paddingTop: 8 },
-          { paddingBottom: bottomControlsHeight + bottomOffset + 24 },
+          { paddingHorizontal: 20, paddingTop: 2 },
+          { paddingBottom: bottomControlsHeight + bottomOffset + 12 },
         ]}
         keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+        bounces={false}
       >
         <Row>
           <InfoCard value={mm} label="Minutes" testID="card-minutes" />
@@ -254,7 +273,7 @@ export default function RunPage() {
           <ZoneSettingsGrid zones={zoneDisplays} />
         </View>
 
-        <View style={{ marginVertical: 8 * globalScale, width: "100%" }}>
+        <View style={{ marginVertical: 6 * globalScale, width: "100%" }}>
           <Pressable
             onPress={handleSaveProtocol}
             testID="btn-save"
@@ -266,14 +285,12 @@ export default function RunPage() {
             hitSlop={8}
           >
             <Text
-              style={[s.saveBtnTxt, { fontSize: Math.round(22 * globalScale) }]}
+              style={[s.saveBtnTxt, { fontSize: Math.round(20 * globalScale) }]}
             >
               {isEditing ? "Update Protocol" : "Save as Protocol"}
             </Text>
           </Pressable>
         </View>
-
-        <View style={{ height: 20 }} />
       </ScrollView>
 
       <View
@@ -284,7 +301,7 @@ export default function RunPage() {
             left: 0,
             right: 0,
             bottom: bottomOffset,
-            paddingVertical: Math.round(10 * globalScale),
+            paddingVertical: Math.round(8 * globalScale),
             paddingHorizontal: Math.round(20 * globalScale),
           },
         ]}
@@ -328,7 +345,7 @@ function InfoCard({
       style={[
         s.card,
         {
-          paddingVertical: Math.round(18 * scale),
+          paddingVertical: Math.round(16 * scale),
           paddingHorizontal: Math.round(16 * scale),
         },
       ]}
@@ -368,7 +385,7 @@ function ZoneSettingsGrid({ zones }: { zones: ZoneDisplay[] }) {
               <Text style={s.zoneCardValue}>{zone.powerLevel}%</Text>
               <Text style={s.zoneCardLabel}>Power</Text>
 
-              <Text style={[s.zoneCardValue, { marginTop: 6 }]}>
+              <Text style={[s.zoneCardValue, { marginTop: 4 }]}>
                 {zone.frequencyHz} Hz
               </Text>
               <Text style={s.zoneCardLabel}>Frequency</Text>
@@ -447,24 +464,35 @@ const s = StyleSheet.create({
   },
   topBar: {
     position: "relative",
-    flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
+    justifyContent: "center",
     paddingHorizontal: 20,
-    paddingTop: 26,
-    marginBottom: 20,
+    paddingTop: 6,
+    marginBottom: 8,
+    minHeight: 42,
+  },
+  headerBack: {
+    position: "absolute",
+    left: 20,
+    top: 5,
+    width: 48,
+    height: 48,
+    justifyContent: "center",
+    alignItems: "flex-start",
+    zIndex: 2,
+  },
+  headerBackText: {
+    color: AppColors.text,
+    fontSize: 28,
+    fontWeight: "800",
   },
   title: {
     color: AppColors.text,
-    fontSize: 30,
+    fontSize: 26,
     fontWeight: "800",
-    position: "absolute",
-    left: 0,
-    right: 0,
     textAlign: "center",
-    zIndex: 1,
   },
-  row: { flexDirection: "row", gap: 18, marginBottom: 14 },
+  row: { flexDirection: "row", gap: 18, marginBottom: 10 },
   card: {
     flex: 1,
     backgroundColor: AppColors.card,
@@ -488,15 +516,15 @@ const s = StyleSheet.create({
     fontWeight: "600",
   },
   zonesWrap: {
-    marginTop: 4,
-    marginBottom: 12,
+    marginTop: 2,
+    marginBottom: 8,
     width: "100%",
   },
   zonesTitle: {
     color: AppColors.text,
-    fontSize: 26,
+    fontSize: 24,
     fontWeight: "800",
-    marginBottom: 12,
+    marginBottom: 8,
     textAlign: "center",
     width: "100%",
   },
@@ -507,12 +535,12 @@ const s = StyleSheet.create({
   },
   zoneCard: {
     width: "48%",
-    height: 104,
+    height: 92,
     borderRadius: 12,
     borderWidth: 1,
     paddingVertical: 4,
     paddingHorizontal: 8,
-    marginBottom: 8,
+    marginBottom: 6,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -527,7 +555,7 @@ const s = StyleSheet.create({
   },
   zoneCardTitle: {
     color: AppColors.text,
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: "800",
     marginBottom: 1,
     textAlign: "center",
@@ -537,7 +565,7 @@ const s = StyleSheet.create({
   },
   zoneCardValue: {
     color: AppColors.text,
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: "800",
     textAlign: "center",
     lineHeight: 18,
@@ -551,7 +579,7 @@ const s = StyleSheet.create({
   },
   zoneCardInactive: {
     color: AppColors.textMuted,
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: "700",
     marginTop: 0,
     textAlign: "center",
@@ -565,7 +593,7 @@ const s = StyleSheet.create({
   },
   saveBtn: {
     width: "100%",
-    paddingVertical: 18,
+    paddingVertical: 16,
     borderRadius: 16,
     alignItems: "center",
     justifyContent: "center",
@@ -579,7 +607,7 @@ const s = StyleSheet.create({
   statusWrap: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 8,
+    marginBottom: 6,
   },
   statusDot: {
     width: 10,
@@ -611,7 +639,7 @@ const s = StyleSheet.create({
     flex: 1,
     backgroundColor: AppColors.primary,
     borderRadius: 16,
-    paddingVertical: 16,
+    paddingVertical: 14,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -619,7 +647,7 @@ const s = StyleSheet.create({
     flex: 1,
     backgroundColor: AppColors.button,
     borderRadius: 16,
-    paddingVertical: 16,
+    paddingVertical: 14,
     alignItems: "center",
     justifyContent: "center",
   },
