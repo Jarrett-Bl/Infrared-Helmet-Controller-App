@@ -17,7 +17,7 @@ type ZoneGroup = { id: number; zones: number[]; color: string };
 
 export default function ComplexZoneSelectionPage() {
   const params = useLocalSearchParams();
-  const { protocol, initProtocol } = useProtocol();
+  const { protocol, initProtocol, removeZonesFromProtocol } = useProtocol();
 
   const groupColors = [
     "#04D9FF",
@@ -39,6 +39,48 @@ export default function ComplexZoneSelectionPage() {
   const [groups, setGroups] = useState<ZoneGroup[]>([]);
   const [selectedGroupId, setSelectedGroupId] = useState<number | null>(null);
 
+  // 🔥 NEW: rebuild groups from saved protocol (for edit)
+  const rebuildGroupsFromProtocol = useCallback(() => {
+    if (!protocol || protocol.editorType !== "complex") return;
+
+    const entries = Object.entries(protocol.Zones ?? {});
+    if (!entries.length) {
+      setGroups([]);
+      setGroupedZones([]);
+      setSelectedZones([]);
+      setSelectedGroupId(null);
+      return;
+    }
+
+    const groupedMap = new Map<string, number[]>();
+
+    entries.forEach(([zoneIdStr, cfg]) => {
+      const zoneId = Number(zoneIdStr);
+      const key = `${cfg.powerLevel}-${cfg.frequencyHz}`;
+
+      if (!groupedMap.has(key)) {
+        groupedMap.set(key, []);
+      }
+
+      groupedMap.get(key)!.push(zoneId);
+    });
+
+    const rebuiltGroups: ZoneGroup[] = Array.from(groupedMap.entries()).map(
+      ([, zones], index) => ({
+        id: index + 1,
+        zones: zones.sort((a, b) => a - b),
+        color: groupColors[index % groupColors.length],
+      }),
+    );
+
+    setGroups(rebuiltGroups);
+    setGroupedZones(
+      rebuiltGroups.flatMap((g) => g.zones).sort((a, b) => a - b),
+    );
+    setSelectedZones([]);
+    setSelectedGroupId(null);
+  }, [protocol, groupColors]);
+
   useFocusEffect(
     useCallback(() => {
       const isFresh = params.fresh === "1";
@@ -48,12 +90,22 @@ export default function ComplexZoneSelectionPage() {
         setGroupedZones([]);
         setGroups([]);
         setSelectedGroupId(null);
+
+        if (!protocol) {
+          initProtocol("complex");
+        }
+        return;
       }
 
       if (!protocol) {
         initProtocol("complex");
+        return;
       }
-    }, [params.fresh, protocol, initProtocol]),
+
+      if (protocol.editorType === "complex") {
+        rebuildGroupsFromProtocol();
+      }
+    }, [params.fresh, protocol, initProtocol, rebuildGroupsFromProtocol]),
   );
 
   const zones = useMemo(() => Array.from({ length: 12 }, (_, i) => i + 1), []);
@@ -131,9 +183,11 @@ export default function ComplexZoneSelectionPage() {
       prev.filter((z) => !groupToDelete.zones.includes(z)),
     );
 
+    removeZonesFromProtocol(groupToDelete.zones);
+
     setSelectedGroupId(null);
     setSelectedZones([]);
-  }, [selectedZones, groups, selectedGroupId]);
+  }, [selectedZones, groups, selectedGroupId, removeZonesFromProtocol]);
 
   const canOpenControls = useMemo(
     () => selectedGroupId != null,
