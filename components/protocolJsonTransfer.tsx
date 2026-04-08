@@ -81,45 +81,45 @@ function safeFileBase(name: string): string {
   return trimmed || "protocol";
 }
 
-export function ProtocolJsonExportButton({ protocol }: { protocol: Protocol }) {
-  const exportProtocol = async () => {
-    try {
-      const json = serializeProtocolForExport(protocol);
-      const base = safeFileBase(protocol.name);
-      const filename = `${base}-${Date.now()}.json`;
+export async function shareProtocolJsonFile(protocol: Protocol): Promise<void> {
+  try {
+    const json = serializeProtocolForExport(protocol);
+    const base = safeFileBase(protocol.name);
+    const filename = `${base}-${Date.now()}.json`;
 
-      const dir = FileSystem.cacheDirectory;
-      if (!dir) {
-        throw new Error("Cache directory is not available.");
-      }
-
-      const path = `${dir}${filename}`;
-      await FileSystem.writeAsStringAsync(path, json, {
-        encoding: FileSystem.EncodingType.UTF8,
-      });
-
-      const canShare = await Sharing.isAvailableAsync();
-      if (!canShare) {
-        Alert.alert("Export", "Sharing is not available on this device.");
-        return;
-      }
-
-      await Sharing.shareAsync(path, {
-        mimeType: "application/json",
-        dialogTitle: "Export protocol",
-        UTI: "public.json",
-      });
-    } catch (e) {
-      Alert.alert(
-        "Export failed",
-        e instanceof Error ? e.message : "Could not export protocol.",
-      );
+    const dir = FileSystem.cacheDirectory;
+    if (!dir) {
+      throw new Error("Cache directory is not available.");
     }
-  };
 
+    const path = `${dir}${filename}`;
+    await FileSystem.writeAsStringAsync(path, json, {
+      encoding: FileSystem.EncodingType.UTF8,
+    });
+
+    const canShare = await Sharing.isAvailableAsync();
+    if (!canShare) {
+      Alert.alert("Export", "Sharing is not available on this device.");
+      return;
+    }
+
+    await Sharing.shareAsync(path, {
+      mimeType: "application/json",
+      dialogTitle: "Export protocol",
+      UTI: "public.json",
+    });
+  } catch (e) {
+    Alert.alert(
+      "Export failed",
+      e instanceof Error ? e.message : "Could not export protocol.",
+    );
+  }
+}
+
+export function ProtocolJsonExportButton({ protocol }: { protocol: Protocol }) {
   return (
     <Pressable
-      onPress={exportProtocol}
+      onPress={() => shareProtocolJsonFile(protocol)}
       hitSlop={10}
       accessibilityRole="button"
       accessibilityLabel="Export protocol to JSON"

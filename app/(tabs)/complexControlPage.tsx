@@ -1,21 +1,17 @@
-import {
-  FREQ_MAX,
-  FREQ_MIN,
-  FREQ_STEP,
-  FrequencySliderInput,
-  POWER_MAX, POWER_MIN, POWER_STEP, PowerSliderInput
-} from "@/components/FreqPageComponents";
 import { AppColors } from "@/constants/theme";
-import { Link, router, useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  Button,
   Pressable,
+  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
-  View
+  TextInput,
+  TouchableOpacity,
+  View,
+  useWindowDimensions,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useProtocol } from "../../context/ProtcolStorageContext";
@@ -24,13 +20,16 @@ export default function ComplexControlPage() {
   const insets = useSafeAreaInsets();
 
   const params = useLocalSearchParams();
-  const { setZoneConfigForZones } = useProtocol();
+  const { protocol, setZoneConfigForZones } = useProtocol();
+  const { width, height } = useWindowDimensions();
 
-  // existing param you were using for UI color
-  const zoneGroupColor =
-    typeof params.zoneGroup === "string" ? params.zoneGroup : undefined;
+  const baseWidth = 390;
+  const baseHeight = 844;
+  const scale = Math.max(
+    0.7,
+    Math.min(1, Math.min(width / baseWidth, height / baseHeight)),
+  );
 
-  // NEW: zones this control page should apply to (passed from ComplexZoneSelectionPage)
   const zoneIds = useMemo(() => {
     const raw = params.zoneIds;
     if (typeof raw !== "string") return [];
@@ -40,12 +39,55 @@ export default function ComplexControlPage() {
       .filter((n) => Number.isFinite(n));
   }, [params.zoneIds]);
 
-  // keep your UI the same, just make these numbers so we can store cleanly
   const [selectedItemPower, setSelectedItemPower] = useState<number | null>(
     null,
   );
   const [text, onChangeText] = useState("");
   const [selectedItemFreq, setSelectedItemFreq] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!protocol || zoneIds.length === 0) {
+      setSelectedItemPower(null);
+      setSelectedItemFreq(null);
+      onChangeText("");
+      return;
+    }
+
+    const configs = zoneIds.map((id) => protocol.Zones?.[id]).filter(Boolean);
+
+    if (configs.length !== zoneIds.length) {
+      setSelectedItemPower(null);
+      setSelectedItemFreq(null);
+      onChangeText("");
+      return;
+    }
+
+    const first = configs[0];
+    if (!first) {
+      setSelectedItemPower(null);
+      setSelectedItemFreq(null);
+      onChangeText("");
+      return;
+    }
+
+    const allMatch = configs.every(
+      (cfg) =>
+        cfg?.powerLevel === first.powerLevel &&
+        cfg?.frequencyHz === first.frequencyHz,
+    );
+
+    const hasSavedValues = first.powerLevel > 0;
+
+    if (allMatch && hasSavedValues) {
+      setSelectedItemPower(first.powerLevel);
+      setSelectedItemFreq(first.frequencyHz);
+      onChangeText(String(first.frequencyHz));
+    } else {
+      setSelectedItemPower(null);
+      setSelectedItemFreq(null);
+      onChangeText("");
+    }
+  }, [protocol, zoneIds]);
 
   const handlePressPower = (val: number) => {
     setSelectedItemPower(val);
@@ -54,9 +96,9 @@ export default function ComplexControlPage() {
 
   const handlePressFreq = (val: number) => {
     setSelectedItemFreq(val);
+    onChangeText(String(val));
   };
 
-  // NEW: write the chosen power/freq into context for the selected zones
   const applyToGroup = useCallback(() => {
     if (zoneIds.length === 0) {
       console.warn(
@@ -67,14 +109,11 @@ export default function ComplexControlPage() {
     }
 
     const powerLevel = selectedItemPower ?? 0;
-
     const fromText = text.trim() ? Number(text) : NaN;
     const frequencyHz =
     selectedItemFreq ?? (Number.isFinite(fromText) ? fromText : 0);
 
     setZoneConfigForZones(zoneIds, { powerLevel, frequencyHz });
-
-    // go back to zone selection after applying
     router.push("/complexZoneSelection");
   }, [
     zoneIds,
@@ -86,177 +125,364 @@ export default function ComplexControlPage() {
   
 
   return (
-    <View style={[styles.screen, { backgroundColor: AppColors.background }]}>
+    <SafeAreaView
+      style={[styles.screen, { backgroundColor: AppColors.background }]}
+    >
       <StatusBar style="light" backgroundColor={AppColors.background} />
+
+      <View style={styles.headerRow}>
+        <Pressable
+          onPress={() => router.push("/complexZoneSelection")}
+          style={styles.headerBack}
+          hitSlop={10}
+        >
+          <Text style={styles.backText}>{"<"}</Text>
+        </Pressable>
+
+        <View style={styles.headerSpacer} />
+        <Text style={[styles.title, { fontSize: Math.round(24 * scale) }]}>
+          Power Level
+        </Text>
+        <View style={styles.headerHome}>
+          <HomeButton />
+        </View>
+      </View>
+
       <ScrollView
-        style={styles.scrollView}
+        style={{ flex: 1 }}
         contentContainerStyle={[
           styles.scrollContent,
-          { paddingBottom: Math.max(insets.bottom, 12) },
+          { paddingBottom: Math.round(20 * scale) },
         ]}
-        showsVerticalScrollIndicator={true}
+        showsVerticalScrollIndicator={false}
+        bounces={false}
       >
-        <View style={styles.split}>
-          <View style={styles.topHalf}>
-            <Text style={[styles.title, { color: zoneGroupColor ? zoneGroupColor : AppColors.text, marginTop: 16 }]}>
-              Frequency (Hz)
-            </Text>    
-            <FrequencySliderInput
-              value={selectedItemFreq ?? 0}
-              onChange={handlePressFreq}
-              min={FREQ_MIN}
-              max={FREQ_MAX}
-              step={FREQ_STEP}
-            />    
-            <View style={styles.grid}>
-              <View style={styles.col}>
-                <Pressable
-                  onPress={() => handlePressFreq(20)}
-                  style={[styles.tile, selectedItemFreq === 20 && styles.tileSelected]}
-                >
-                  <Text style={styles.tileText}>20 Hz</Text>
-                </Pressable>
-                <Pressable
-                  onPress={() => handlePressFreq(80)}
-                  style={[styles.tile, selectedItemFreq === 80 && styles.tileSelected]}
-                >
-                  <Text style={styles.tileText}>80 Hz</Text>
-                </Pressable>
-              </View>
-              <View style={styles.col}>
-                <Pressable
-                  onPress={() => handlePressFreq(50)}
-                  style={[styles.tile, selectedItemFreq === 50 && styles.tileSelected]}
-                >
-                  <Text style={styles.tileText}>50 Hz</Text>
-                </Pressable>
-                <Pressable
-                  onPress={() => handlePressFreq(140)}
-                  style={[styles.tile, selectedItemFreq === 140 && styles.tileSelected]}
-                >
-                  <Text style={styles.tileText}>140 Hz</Text>
-                </Pressable>
-              </View>
-            </View>
-          </View>    
-          <View style={styles.bottomHalf}>
-            <View style={styles.section}>
-              <Text style={[styles.title, { color: zoneGroupColor ? zoneGroupColor : AppColors.text }]}>
-                Power Level (%)
-              </Text>
-        
-              <PowerSliderInput
-                value={selectedItemPower ?? 0}
-                onChange={handlePressPower}
-                min={POWER_MIN}
-                max={POWER_MAX}
-                step={POWER_STEP}
-              />
-            
-                <View style={styles.grid}>
-                  <View style={styles.col}>
-                    <Pressable
-                      onPress={() => handlePressPower(25)}
-                      style={[styles.tile, selectedItemPower === 25 && styles.tileSelected]}
-                    >
-                      <Text style={styles.tileText}>25%</Text>
-                    </Pressable>
-                    <Pressable
-                      onPress={() => handlePressPower(75)}
-                      style={[styles.tile, selectedItemPower === 75 && styles.tileSelected]}
-                    >
-                      <Text style={styles.tileText}>75%</Text>
-                    </Pressable>
-                  </View>
-                  <View style={styles.col}>
-                    <Pressable
-                      onPress={() => handlePressPower(50)}
-                      style={[styles.tile, selectedItemPower === 50 && styles.tileSelected]}
-                    >
-                      <Text style={styles.tileText}>50%</Text>
-                    </Pressable>
-                    <Pressable
-                      onPress={() => handlePressPower(100)}
-                      style={[styles.tile, selectedItemPower === 100 && styles.tileSelected]}
-                    >
-                      <Text style={styles.tileText}>100%</Text>
-                    </Pressable>
-                  </View>
-                </View>
-              </View>
-          </View>    
-        
-        {/* NEW: Apply button */}
-        <View style={{ marginTop: 8 }}>
-          <Button title="Apply to Group" onPress={applyToGroup} />
+        <View
+          style={[
+            styles.container,
+            {
+              backgroundColor: AppColors.background,
+              paddingHorizontal: Math.round(8 * scale),
+              paddingBottom: Math.round(10 * scale),
+            },
+          ]}
+        >
+          <TouchableOpacity
+            style={[
+              styles.button,
+              {
+                height: Math.round(120 * scale),
+                borderRadius: Math.round(24 * scale),
+                marginVertical: Math.round(10 * scale),
+              },
+              selectedItemPower === 25 && styles.selectedButton,
+            ]}
+            onPress={() => handlePressPower(25)}
+          >
+            <Text
+              style={[styles.buttonLabel, { fontSize: Math.round(25 * scale) }]}
+            >
+              25%
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.button,
+              {
+                height: Math.round(120 * scale),
+                borderRadius: Math.round(24 * scale),
+                marginVertical: Math.round(10 * scale),
+              },
+              selectedItemPower === 50 && styles.selectedButton,
+            ]}
+            onPress={() => handlePressPower(50)}
+          >
+            <Text
+              style={[styles.buttonLabel, { fontSize: Math.round(25 * scale) }]}
+            >
+              50%
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.button,
+              {
+                height: Math.round(120 * scale),
+                borderRadius: Math.round(24 * scale),
+                marginVertical: Math.round(10 * scale),
+              },
+              selectedItemPower === 75 && styles.selectedButton,
+            ]}
+            onPress={() => handlePressPower(75)}
+          >
+            <Text
+              style={[styles.buttonLabel, { fontSize: Math.round(25 * scale) }]}
+            >
+              75%
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.button,
+              {
+                height: Math.round(120 * scale),
+                borderRadius: Math.round(24 * scale),
+                marginVertical: Math.round(10 * scale),
+              },
+              selectedItemPower === 100 && styles.selectedButton,
+            ]}
+            onPress={() => handlePressPower(100)}
+          >
+            <Text
+              style={[styles.buttonLabel, { fontSize: Math.round(25 * scale) }]}
+            >
+              100%
+            </Text>
+          </TouchableOpacity>
         </View>
-              
-        {/* Keep your Back button */}
-        <Link href="/complexZoneSelection" asChild>
-          <Button title="Back" />
-        </Link>
+
+        <Text
+          style={[
+            styles.title,
+            {
+              fontSize: Math.round(24 * scale),
+              marginTop: Math.round(8 * scale),
+              marginBottom: Math.round(8 * scale),
+            },
+          ]}
+        >
+          Frequency (Hz)
+        </Text>
+
+        <TextInput
+          multiline={false}
+          style={[
+            styles.input,
+            {
+              marginHorizontal: Math.round(24 * scale),
+              marginVertical: Math.round(16 * scale),
+              height: Math.round(44 * scale),
+              fontSize: Math.round(18 * scale),
+            },
+          ]}
+          placeholder="0 - 20,000"
+          placeholderTextColor="gray"
+          onChangeText={(newText) => {
+            onChangeText(newText);
+            const parsed = Number(newText);
+            setSelectedItemFreq(Number.isFinite(parsed) ? parsed : null);
+          }}
+          value={text}
+          keyboardType="numeric"
+        />
+
+        <View
+          style={[
+            styles.container,
+            {
+              backgroundColor: AppColors.background,
+              paddingHorizontal: Math.round(8 * scale),
+              paddingBottom: Math.round(8 * scale),
+            },
+          ]}
+        >
+          <TouchableOpacity
+            style={[
+              styles.button,
+              {
+                height: Math.round(120 * scale),
+                borderRadius: Math.round(24 * scale),
+                marginVertical: Math.round(10 * scale),
+              },
+              selectedItemFreq === 0 && styles.selectedButton,
+            ]}
+            onPress={() => handlePressFreq(0)}
+          >
+            <Text
+              style={[styles.buttonLabel, { fontSize: Math.round(25 * scale) }]}
+            >
+              0
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.button,
+              {
+                height: Math.round(120 * scale),
+                borderRadius: Math.round(24 * scale),
+                marginVertical: Math.round(10 * scale),
+              },
+              selectedItemFreq === 50 && styles.selectedButton,
+            ]}
+            onPress={() => handlePressFreq(50)}
+          >
+            <Text
+              style={[styles.buttonLabel, { fontSize: Math.round(25 * scale) }]}
+            >
+              50
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.button,
+              {
+                height: Math.round(120 * scale),
+                borderRadius: Math.round(24 * scale),
+                marginVertical: Math.round(10 * scale),
+              },
+              selectedItemFreq === 75 && styles.selectedButton,
+            ]}
+            onPress={() => handlePressFreq(75)}
+          >
+            <Text
+              style={[styles.buttonLabel, { fontSize: Math.round(25 * scale) }]}
+            >
+              75
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.button,
+              {
+                height: Math.round(120 * scale),
+                borderRadius: Math.round(24 * scale),
+                marginVertical: Math.round(10 * scale),
+              },
+              selectedItemFreq === 100 && styles.selectedButton,
+            ]}
+            onPress={() => handlePressFreq(100)}
+          >
+            <Text
+              style={[styles.buttonLabel, { fontSize: Math.round(25 * scale) }]}
+            >
+              100
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        <View
+          style={[
+            styles.bottomButtonsWrap,
+            { marginTop: Math.round(8 * scale), gap: Math.round(10 * scale) },
+          ]}
+        >
+          <Pressable
+            onPress={applyToGroup}
+            style={({ pressed }) => [
+              styles.actionBtn,
+              { paddingVertical: Math.round(14 * scale) },
+              pressed && styles.actionBtnPressed,
+            ]}
+          >
+            <Text
+              style={[
+                styles.actionBtnText,
+                { fontSize: Math.round(18 * scale) },
+              ]}
+            >
+              Apply to Group
+            </Text>
+          </Pressable>
         </View>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, padding: 16 },
-  scrollView: { flex: 1 },
-  scrollContent: { flexGrow: 1 },
-  split: { flex: 1, flexDirection: "column" },
-  topHalf: { flex: 1, minHeight: 0 },
-  bottomHalf: { flex: 1, minHeight: 0 },
-  title: { fontSize: 24, fontWeight: "600", textAlign: "center", padding: 10 },
-  grid: {
-    flexDirection: "row",
-    flex: 1,
-    marginTop: 8,
-    marginBottom: 12,
+  screen: { flex: 1, paddingHorizontal: 16 },
+  scrollContent: {
+    paddingTop: 6,
   },
-  col: {
-    flex: 1,
-    minHeight: 0,
-  },
-  tile: {
-    flex: 1,
-    backgroundColor: AppColors.card,
-    borderRadius: 14,
-    borderWidth: 2,
-    borderColor: AppColors.border,
-    margin: 8,
-    alignItems: "center",
+  headerRow: {
+    position: "relative",
+    minHeight: 48,
     justifyContent: "center",
-    elevation: 3,
+    alignItems: "center",
+    marginTop: 4,
+    marginBottom: 6,
+  },
+  headerBack: {
+    position: "absolute",
+    left: 0,
+    top: 35,
+    width: 48,
+    height: 48,
+    justifyContent: "center",
+    alignItems: "flex-start",
+    zIndex: 2,
+  },
+  backText: {
+    fontSize: 28,
+    color: AppColors.text,
+    fontWeight: "700",
+    lineHeight: 28,
+  },
+  headerSpacer: {
+    width: 48,
+    height: 48,
+  },
+  headerHome: {
+    position: "absolute",
+    right: 0,
+    top: 0,
+  },
+  title: {
+    fontWeight: "600",
+    textAlign: "center",
+    paddingVertical: 8,
+    color: AppColors.text,
+  },
+  container: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  button: {
+    width: "47%",
+    aspectRatio: 2,
+    backgroundColor: AppColors.button,
+    borderColor: AppColors.text,
+    justifyContent: "center",
+    alignItems: "center",
   },
   tileSelected: {
     borderColor: AppColors.selected,
   },
-  tileText: {
-    color: AppColors.text,
-    fontSize: 24,
+  buttonLabel: {
     fontWeight: "700",
-    textAlign: "center",
+    color: AppColors.text,
   },
-  nextButtonWrap: { paddingHorizontal: 16, marginTop: 20, marginBottom: 8 },
-  nextButton: {
+  input: {
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    backgroundColor: AppColors.button,
+    borderRadius: 10,
+    color: AppColors.text,
+  },
+  bottomButtonsWrap: {
     width: "100%",
-    backgroundColor: AppColors.primary,
-    borderRadius: 12,
-    paddingVertical: 16,
+    marginBottom: 8,
+  },
+  actionBtn: {
+    width: "100%",
+    borderRadius: 14,
     alignItems: "center",
     justifyContent: "center",
+    backgroundColor: AppColors.primary,
   },
-  nextButtonText: {
+  actionBtnText: {
     color: AppColors.text,
-    fontSize: 22,
     fontWeight: "800",
   },
-  section: {
-    flex: 1,
-    paddingHorizontal: 16,
-    paddingTop: 8,
-    paddingBottom: 8,
+  actionBtnPressed: {
+    opacity: 0.9,
   },
 });
