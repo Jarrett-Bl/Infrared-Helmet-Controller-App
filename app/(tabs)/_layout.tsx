@@ -1,7 +1,7 @@
 import { HapticTab } from "@/components/haptic-tab";
 import { Colors } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
-import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { Stack, Tabs } from "expo-router";
 import React, { createContext, useState } from "react";
 
@@ -63,19 +63,6 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="settings"
-        options={{
-          title: "Settings",
-          tabBarIcon: ({ color }) => (
-            <MaterialCommunityIcons
-              name="cog-outline"
-              size={22}
-              color={color}
-            />
-          ),
-        }}
-      />
-      <Tabs.Screen
         name="protocolPage"
         options={{
           title: "Protocols",
@@ -93,6 +80,7 @@ export default function TabLayout() {
       <Tabs.Screen name="protocolRunPage" options={{ href: null }} />
       <Tabs.Screen name="complexControlPage" options={{ href: null }} />
       <Tabs.Screen name="complexZoneSelection" options={{ href: null }} />
+      <Tabs.Screen name="complexTimePage" options={{ href: null }} />
     </Tabs>
   );
 }

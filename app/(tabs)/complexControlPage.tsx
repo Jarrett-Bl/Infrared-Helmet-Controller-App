@@ -1,27 +1,33 @@
 import HomeButton from "@/components/ui/HomeButton";
 import { AppColors } from "@/constants/theme";
-import { Link, router, useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  Button,
+  Pressable,
+  SafeAreaView,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View,
+  useWindowDimensions,
 } from "react-native";
 import { useProtocol } from "../../context/ProtcolStorageContext";
 
 export default function ComplexControlPage() {
   const params = useLocalSearchParams();
-  const { setZoneConfigForZones } = useProtocol();
+  const { protocol, setZoneConfigForZones } = useProtocol();
+  const { width, height } = useWindowDimensions();
 
-  // existing param you were using for UI color
-  const zoneGroupColor =
-    typeof params.zoneGroup === "string" ? params.zoneGroup : undefined;
+  const baseWidth = 390;
+  const baseHeight = 844;
+  const scale = Math.max(
+    0.7,
+    Math.min(1, Math.min(width / baseWidth, height / baseHeight)),
+  );
 
-  // NEW: zones this control page should apply to (passed from ComplexZoneSelectionPage)
   const zoneIds = useMemo(() => {
     const raw = params.zoneIds;
     if (typeof raw !== "string") return [];
@@ -31,12 +37,55 @@ export default function ComplexControlPage() {
       .filter((n) => Number.isFinite(n));
   }, [params.zoneIds]);
 
-  // keep your UI the same, just make these numbers so we can store cleanly
   const [selectedItemPower, setSelectedItemPower] = useState<number | null>(
     null,
   );
   const [text, onChangeText] = useState("");
   const [selectedItemFreq, setSelectedItemFreq] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!protocol || zoneIds.length === 0) {
+      setSelectedItemPower(null);
+      setSelectedItemFreq(null);
+      onChangeText("");
+      return;
+    }
+
+    const configs = zoneIds.map((id) => protocol.Zones?.[id]).filter(Boolean);
+
+    if (configs.length !== zoneIds.length) {
+      setSelectedItemPower(null);
+      setSelectedItemFreq(null);
+      onChangeText("");
+      return;
+    }
+
+    const first = configs[0];
+    if (!first) {
+      setSelectedItemPower(null);
+      setSelectedItemFreq(null);
+      onChangeText("");
+      return;
+    }
+
+    const allMatch = configs.every(
+      (cfg) =>
+        cfg?.powerLevel === first.powerLevel &&
+        cfg?.frequencyHz === first.frequencyHz,
+    );
+
+    const hasSavedValues = first.powerLevel > 0;
+
+    if (allMatch && hasSavedValues) {
+      setSelectedItemPower(first.powerLevel);
+      setSelectedItemFreq(first.frequencyHz);
+      onChangeText(String(first.frequencyHz));
+    } else {
+      setSelectedItemPower(null);
+      setSelectedItemFreq(null);
+      onChangeText("");
+    }
+  }, [protocol, zoneIds]);
 
   const handlePressPower = (val: number) => {
     setSelectedItemPower(val);
@@ -45,9 +94,9 @@ export default function ComplexControlPage() {
 
   const handlePressFreq = (val: number) => {
     setSelectedItemFreq(val);
+    onChangeText(String(val));
   };
 
-  // NEW: write the chosen power/freq into context for the selected zones
   const applyToGroup = useCallback(() => {
     if (zoneIds.length === 0) {
       console.warn(
@@ -58,14 +107,11 @@ export default function ComplexControlPage() {
     }
 
     const powerLevel = selectedItemPower ?? 0;
-
     const fromText = text.trim() ? Number(text) : NaN;
     const frequencyHz =
       selectedItemFreq ?? (Number.isFinite(fromText) ? fromText : 0);
 
     setZoneConfigForZones(zoneIds, { powerLevel, frequencyHz });
-
-    // go back to zone selection after applying
     router.push("/complexZoneSelection");
   }, [
     zoneIds,
@@ -76,185 +122,364 @@ export default function ComplexControlPage() {
   ]);
 
   return (
-    <View style={[styles.screen, { backgroundColor: AppColors.background }]}>
-      <Text
-        style={[
-          styles.title,
-          {
-            color: zoneGroupColor ? zoneGroupColor : AppColors.text,
-            marginTop: 16,
-          },
+    <SafeAreaView
+      style={[styles.screen, { backgroundColor: AppColors.background }]}
+    >
+      <StatusBar style="light" backgroundColor={AppColors.background} />
+
+      <View style={styles.headerRow}>
+        <Pressable
+          onPress={() => router.push("/complexZoneSelection")}
+          style={styles.headerBack}
+          hitSlop={10}
+        >
+          <Text style={styles.backText}>{"<"}</Text>
+        </Pressable>
+
+        <View style={styles.headerSpacer} />
+        <Text style={[styles.title, { fontSize: Math.round(24 * scale) }]}>
+          Power Level
+        </Text>
+        <View style={styles.headerHome}>
+          <HomeButton />
+        </View>
+      </View>
+
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingBottom: Math.round(20 * scale) },
         ]}
+        showsVerticalScrollIndicator={false}
+        bounces={false}
       >
-        Power Level
-      </Text>
-
-      <HomeButton />
-      <StatusBar style={"light"} backgroundColor={AppColors.background} />
-
-      <View
-        style={[styles.container, { backgroundColor: AppColors.background }]}
-      >
-        <TouchableOpacity
+        <View
           style={[
-            styles.button,
-            selectedItemPower === 0 && styles.selectedButton,
+            styles.container,
+            {
+              backgroundColor: AppColors.background,
+              paddingHorizontal: Math.round(8 * scale),
+              paddingBottom: Math.round(10 * scale),
+            },
           ]}
-          onPress={() => handlePressPower(0)}
         >
-          <Text style={styles.buttonLabel}>25%</Text>
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.button,
+              {
+                height: Math.round(120 * scale),
+                borderRadius: Math.round(24 * scale),
+                marginVertical: Math.round(10 * scale),
+              },
+              selectedItemPower === 25 && styles.selectedButton,
+            ]}
+            onPress={() => handlePressPower(25)}
+          >
+            <Text
+              style={[styles.buttonLabel, { fontSize: Math.round(25 * scale) }]}
+            >
+              25%
+            </Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity
+          <TouchableOpacity
+            style={[
+              styles.button,
+              {
+                height: Math.round(120 * scale),
+                borderRadius: Math.round(24 * scale),
+                marginVertical: Math.round(10 * scale),
+              },
+              selectedItemPower === 50 && styles.selectedButton,
+            ]}
+            onPress={() => handlePressPower(50)}
+          >
+            <Text
+              style={[styles.buttonLabel, { fontSize: Math.round(25 * scale) }]}
+            >
+              50%
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.button,
+              {
+                height: Math.round(120 * scale),
+                borderRadius: Math.round(24 * scale),
+                marginVertical: Math.round(10 * scale),
+              },
+              selectedItemPower === 75 && styles.selectedButton,
+            ]}
+            onPress={() => handlePressPower(75)}
+          >
+            <Text
+              style={[styles.buttonLabel, { fontSize: Math.round(25 * scale) }]}
+            >
+              75%
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.button,
+              {
+                height: Math.round(120 * scale),
+                borderRadius: Math.round(24 * scale),
+                marginVertical: Math.round(10 * scale),
+              },
+              selectedItemPower === 100 && styles.selectedButton,
+            ]}
+            onPress={() => handlePressPower(100)}
+          >
+            <Text
+              style={[styles.buttonLabel, { fontSize: Math.round(25 * scale) }]}
+            >
+              100%
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        <Text
           style={[
-            styles.button,
-            selectedItemPower === 50 && styles.selectedButton,
+            styles.title,
+            {
+              fontSize: Math.round(24 * scale),
+              marginTop: Math.round(8 * scale),
+              marginBottom: Math.round(8 * scale),
+            },
           ]}
-          onPress={() => handlePressPower(50)}
         >
-          <Text style={styles.buttonLabel}>50%</Text>
-        </TouchableOpacity>
+          Frequency (Hz)
+        </Text>
 
-        <TouchableOpacity
+        <TextInput
+          multiline={false}
           style={[
-            styles.button,
-            selectedItemPower === 75 && styles.selectedButton,
+            styles.input,
+            {
+              marginHorizontal: Math.round(24 * scale),
+              marginVertical: Math.round(16 * scale),
+              height: Math.round(44 * scale),
+              fontSize: Math.round(18 * scale),
+            },
           ]}
-          onPress={() => handlePressPower(75)}
-        >
-          <Text style={styles.buttonLabel}>75%</Text>
-        </TouchableOpacity>
+          placeholder="0 - 20,000"
+          placeholderTextColor="gray"
+          onChangeText={(newText) => {
+            onChangeText(newText);
+            const parsed = Number(newText);
+            setSelectedItemFreq(Number.isFinite(parsed) ? parsed : null);
+          }}
+          value={text}
+          keyboardType="numeric"
+        />
 
-        <TouchableOpacity
+        <View
           style={[
-            styles.button,
-            selectedItemPower === 100 && styles.selectedButton,
+            styles.container,
+            {
+              backgroundColor: AppColors.background,
+              paddingHorizontal: Math.round(8 * scale),
+              paddingBottom: Math.round(8 * scale),
+            },
           ]}
-          onPress={() => handlePressPower(100)}
         >
-          <Text style={styles.buttonLabel}>100%</Text>
-        </TouchableOpacity>
-      </View>
+          <TouchableOpacity
+            style={[
+              styles.button,
+              {
+                height: Math.round(120 * scale),
+                borderRadius: Math.round(24 * scale),
+                marginVertical: Math.round(10 * scale),
+              },
+              selectedItemFreq === 0 && styles.selectedButton,
+            ]}
+            onPress={() => handlePressFreq(0)}
+          >
+            <Text
+              style={[styles.buttonLabel, { fontSize: Math.round(25 * scale) }]}
+            >
+              0
+            </Text>
+          </TouchableOpacity>
 
-      <Text
-        style={[
-          styles.title,
-          { color: zoneGroupColor ? zoneGroupColor : AppColors.text },
-        ]}
-      >
-        Frequency (Hz)
-      </Text>
+          <TouchableOpacity
+            style={[
+              styles.button,
+              {
+                height: Math.round(120 * scale),
+                borderRadius: Math.round(24 * scale),
+                marginVertical: Math.round(10 * scale),
+              },
+              selectedItemFreq === 50 && styles.selectedButton,
+            ]}
+            onPress={() => handlePressFreq(50)}
+          >
+            <Text
+              style={[styles.buttonLabel, { fontSize: Math.round(25 * scale) }]}
+            >
+              50
+            </Text>
+          </TouchableOpacity>
 
-      <TextInput
-        multiline={false}
-        style={styles.input}
-        placeholder="0 - 20,000"
-        placeholderTextColor="gray"
-        onChangeText={(newText) => onChangeText(newText)}
-        value={text}
-        keyboardType="numeric"
-      />
+          <TouchableOpacity
+            style={[
+              styles.button,
+              {
+                height: Math.round(120 * scale),
+                borderRadius: Math.round(24 * scale),
+                marginVertical: Math.round(10 * scale),
+              },
+              selectedItemFreq === 75 && styles.selectedButton,
+            ]}
+            onPress={() => handlePressFreq(75)}
+          >
+            <Text
+              style={[styles.buttonLabel, { fontSize: Math.round(25 * scale) }]}
+            >
+              75
+            </Text>
+          </TouchableOpacity>
 
-      <View
-        style={[styles.container, { backgroundColor: AppColors.background }]}
-      >
-        <TouchableOpacity
+          <TouchableOpacity
+            style={[
+              styles.button,
+              {
+                height: Math.round(120 * scale),
+                borderRadius: Math.round(24 * scale),
+                marginVertical: Math.round(10 * scale),
+              },
+              selectedItemFreq === 100 && styles.selectedButton,
+            ]}
+            onPress={() => handlePressFreq(100)}
+          >
+            <Text
+              style={[styles.buttonLabel, { fontSize: Math.round(25 * scale) }]}
+            >
+              100
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        <View
           style={[
-            styles.button,
-            selectedItemFreq === 0 && styles.selectedButton,
+            styles.bottomButtonsWrap,
+            { marginTop: Math.round(8 * scale), gap: Math.round(10 * scale) },
           ]}
-          onPress={() => handlePressFreq(0)}
         >
-          <Text style={styles.buttonLabel}>0</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[
-            styles.button,
-            selectedItemFreq === 50 && styles.selectedButton,
-          ]}
-          onPress={() => handlePressFreq(50)}
-        >
-          <Text style={styles.buttonLabel}>50</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[
-            styles.button,
-            selectedItemFreq === 75 && styles.selectedButton,
-          ]}
-          onPress={() => handlePressFreq(75)}
-        >
-          <Text style={styles.buttonLabel}>75</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[
-            styles.button,
-            selectedItemFreq === 100 && styles.selectedButton,
-          ]}
-          onPress={() => handlePressFreq(100)}
-        >
-          <Text style={styles.buttonLabel}>100</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* NEW: Apply button */}
-      <View style={{ marginTop: 8 }}>
-        <Button title="Apply to Group" onPress={applyToGroup} />
-      </View>
-
-      {/* Keep your Back button */}
-      <Link href="/complexZoneSelection" asChild>
-        <Button title="Back" />
-      </Link>
-    </View>
+          <Pressable
+            onPress={applyToGroup}
+            style={({ pressed }) => [
+              styles.actionBtn,
+              { paddingVertical: Math.round(14 * scale) },
+              pressed && styles.actionBtnPressed,
+            ]}
+          >
+            <Text
+              style={[
+                styles.actionBtnText,
+                { fontSize: Math.round(18 * scale) },
+              ]}
+            >
+              Apply to Group
+            </Text>
+          </Pressable>
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, padding: 16 },
-  title: { fontSize: 24, fontWeight: "600", textAlign: "center", padding: 10 },
-  header: {
-    fontSize: 17,
-    fontWeight: "200",
-    textAlign: "center",
-    marginBottom: 20,
+  screen: { flex: 1, paddingHorizontal: 16 },
+  scrollContent: {
+    paddingTop: 6,
   },
-  center: { flex: 1, alignItems: "center", justifyContent: "center" },
+  headerRow: {
+    position: "relative",
+    minHeight: 48,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 4,
+    marginBottom: 6,
+  },
+  headerBack: {
+    position: "absolute",
+    left: 0,
+    top: 35,
+    width: 48,
+    height: 48,
+    justifyContent: "center",
+    alignItems: "flex-start",
+    zIndex: 2,
+  },
+  backText: {
+    fontSize: 28,
+    color: AppColors.text,
+    fontWeight: "700",
+    lineHeight: 28,
+  },
+  headerSpacer: {
+    width: 48,
+    height: 48,
+  },
+  headerHome: {
+    position: "absolute",
+    right: 0,
+    top: 0,
+  },
+  title: {
+    fontWeight: "600",
+    textAlign: "center",
+    paddingVertical: 8,
+    color: AppColors.text,
+  },
   container: {
     flexDirection: "row",
     flexWrap: "wrap",
-    justifyContent: "space-around",
+    justifyContent: "space-between",
     alignItems: "center",
-    padding: 10,
-    paddingBottom: 20,
   },
   button: {
+    width: "47%",
     aspectRatio: 2,
-    height: 150,
     backgroundColor: AppColors.button,
     borderColor: AppColors.text,
     justifyContent: "center",
     alignItems: "center",
-    marginVertical: 20,
-    borderRadius: 24,
   },
   selectedButton: {
     backgroundColor: AppColors.success,
   },
   buttonLabel: {
-    fontSize: 25,
-    fontWeight: 700,
+    fontWeight: "700",
     color: AppColors.text,
   },
   input: {
-    height: 40,
-    margin: 80,
     borderWidth: 1,
-    padding: 10,
+    paddingHorizontal: 12,
     backgroundColor: AppColors.button,
     borderRadius: 10,
     color: AppColors.text,
+  },
+  bottomButtonsWrap: {
+    width: "100%",
+    marginBottom: 8,
+  },
+  actionBtn: {
+    width: "100%",
+    borderRadius: 14,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: AppColors.primary,
+  },
+  actionBtnText: {
+    color: AppColors.text,
+    fontWeight: "800",
+  },
+  actionBtnPressed: {
+    opacity: 0.9,
   },
 });

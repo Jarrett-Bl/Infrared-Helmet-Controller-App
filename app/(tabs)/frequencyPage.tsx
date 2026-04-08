@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import {
   FREQ_DEFAULT,
   FREQ_MAX,
@@ -12,26 +11,17 @@ import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useRef, useState } from "react";
 import {
-  Button,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useProtocol } from "../../context/ProtcolStorageContext";
 
-=======
-import BackButton from '@/components/BackButton';
-import { FREQ_DEFAULT, FREQ_MAX, FREQ_MIN, FREQ_STEP, FrequencySliderInput } from '@/components/FreqPageComponents';
-import { AppColors } from '@/constants/theme';
-import { router } from 'expo-router';
-import { StatusBar } from "expo-status-bar";
-import { useState } from "react";
-import { Button, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import { useProtocol } from '../../context/ProtcolStorageContext';
->>>>>>> back-nav
 export default function FrequencyPage() {
+  const insets = useSafeAreaInsets();
   const { protocol, setFrequencyForAllZones } = useProtocol();
   const [frequency, setFrequency] = useState(FREQ_DEFAULT);
   const didInitFromProtocol = useRef(false);
@@ -68,63 +58,101 @@ export default function FrequencyPage() {
   return (
     <View style={[styles.screen, { backgroundColor: AppColors.background }]}>
       <StatusBar style="light" backgroundColor={AppColors.background} />
+      <Pressable
+        onPress={() => router.push("/zoneSelection")}
+        style={{
+          position: "absolute",
+          left: 20,
+          top: 35,
+          width: 48,
+          height: 48,
+          justifyContent: "center",
+          alignItems: "flex-start",
+          zIndex: 2,
+        }}
+        hitSlop={10}
+      >
+        <Text
+          style={{
+            color: AppColors.text,
+            fontSize: 28,
+            fontWeight: "800",
+          }}
+        >
+          {"<"}
+        </Text>
+      </Pressable>
       <ScrollView
         style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingBottom: Math.max(insets.bottom, 12) },
+        ]}
         showsVerticalScrollIndicator={true}
-<<<<<<< HEAD
       >
-        <PowerLevelSection />
+        <View style={styles.split}>
+          <View style={styles.topHalf}>
+            <Text style={[styles.title, { color: AppColors.text, marginTop: 16 }]}>
+              Frequency (Hz)
+            </Text>
 
-=======
-      > 
-        <BackButton />
->>>>>>> back-nav
-        <Text style={[styles.title, { color: AppColors.text, marginTop: 16 }]}>
-          Frequency (Hz)
-        </Text>
+            <FrequencySliderInput
+              value={frequency}
+              onChange={setFrequency}
+              min={FREQ_MIN}
+              max={FREQ_MAX}
+              step={FREQ_STEP}
+            />
 
-        <FrequencySliderInput
-          value={frequency}
-          onChange={setFrequency}
-          min={FREQ_MIN}
-          max={FREQ_MAX}
-          step={FREQ_STEP}
-        />
+            <View style={styles.grid}>
+              <View style={styles.col}>
+                <Pressable
+                  onPress={() => setFrequency(20)}
+                  style={[styles.tile, frequency === 20 && styles.tileSelected]}
+                >
+                  <Text style={styles.tileText}>20 Hz</Text>
+                </Pressable>
+                <Pressable
+                  onPress={() => setFrequency(80)}
+                  style={[styles.tile, frequency === 80 && styles.tileSelected]}
+                >
+                  <Text style={styles.tileText}>80 Hz</Text>
+                </Pressable>
+              </View>
+              <View style={styles.col}>
+                <Pressable
+                  onPress={() => setFrequency(50)}
+                  style={[styles.tile, frequency === 50 && styles.tileSelected]}
+                >
+                  <Text style={styles.tileText}>50 Hz</Text>
+                </Pressable>
+                <Pressable
+                  onPress={() => setFrequency(140)}
+                  style={[styles.tile, frequency === 140 && styles.tileSelected]}
+                >
+                  <Text style={styles.tileText}>140 Hz</Text>
+                </Pressable>
+              </View>
+            </View>
+          </View>
 
-        <View style={styles.grid}>
-          <View style={styles.col}>
+          <View style={styles.bottomHalf}>
+            <PowerLevelSection />
+          </View>
+
+          <View style={styles.nextButtonWrap}>
             <Pressable
-              onPress={() => setFrequency(20)}
-              style={[styles.tile, frequency === 20 && styles.tileSelected]}
+              onPress={handleNext}
+              style={({ pressed }) => [
+                styles.nextButton,
+                { opacity: pressed ? 0.85 : 1 },
+              ]}
+              accessibilityRole="button"
+              accessibilityLabel="Next"
             >
-              <Text style={styles.tileText}>20 Hz</Text>
-            </Pressable>
-            <Pressable
-              onPress={() => setFrequency(80)}
-              style={[styles.tile, frequency === 80 && styles.tileSelected]}
-            >
-              <Text style={styles.tileText}>80 Hz</Text>
+              <Text style={styles.nextButtonText}>Next</Text>
             </Pressable>
           </View>
-          <View style={styles.col}>
-            <Pressable
-              onPress={() => setFrequency(50)}
-              style={[styles.tile, frequency === 50 && styles.tileSelected]}
-            >
-              <Text style={styles.tileText}>50 Hz</Text>
-            </Pressable>
-            <Pressable
-              onPress={() => setFrequency(140)}
-              style={[styles.tile, frequency === 140 && styles.tileSelected]}
-            >
-              <Text style={styles.tileText}>140 Hz</Text>
-            </Pressable>
-          </View>
-        </View>
-
-        <View style={styles.nextButtonWrap}>
-          <Button title="Next" onPress={handleNext} />
         </View>
       </ScrollView>
     </View>
@@ -134,12 +162,16 @@ export default function FrequencyPage() {
 const styles = StyleSheet.create({
   screen: { flex: 1, padding: 16 },
   scrollView: { flex: 1 },
-  scrollContent: { paddingBottom: 24 },
+  scrollContent: { flexGrow: 1 },
+  split: { flex: 1, flexDirection: "column" },
+  topHalf: { flex: 1, minHeight: 0 },
+  bottomHalf: { flex: 1, minHeight: 0 },
   title: { fontSize: 24, fontWeight: "600", textAlign: "center", padding: 10 },
   grid: {
     flexDirection: "row",
+    flex: 1,
     marginTop: 8,
-    marginBottom: 16,
+    marginBottom: 12,
   },
   col: {
     flex: 1,
@@ -165,5 +197,18 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     textAlign: "center",
   },
-  nextButtonWrap: { paddingHorizontal: 16, marginBottom: 24 },
+  nextButtonWrap: { paddingHorizontal: 16, marginTop: 20, marginBottom: 8 },
+  nextButton: {
+    width: "100%",
+    backgroundColor: AppColors.primary,
+    borderRadius: 12,
+    paddingVertical: 16,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  nextButtonText: {
+    color: AppColors.text,
+    fontSize: 22,
+    fontWeight: "800",
+  },
 });

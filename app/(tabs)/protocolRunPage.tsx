@@ -1,11 +1,17 @@
-import BackButton from '@/components/BackButton';
-import { AppColors } from '@/constants/theme';
+import { AppColors } from "@/constants/theme";
 import { router } from "expo-router";
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   Platform,
   Pressable,
   SafeAreaView,
+  ScrollView,
   StyleSheet,
   Text,
   TextStyle,
@@ -14,7 +20,7 @@ import {
   useWindowDimensions,
 } from "react-native";
 import { useProtocol } from "../../context/ProtcolStorageContext";
-// Data structure for protocol settings - built through previous selection screens
+
 type protocolSettings = {
   id: string;
   name: string;
@@ -26,35 +32,39 @@ type protocolSettings = {
   activeZones: number[];
 };
 
+type ZoneDisplay = {
+  zoneId: number;
+  isActive: boolean;
+  powerLevel: number;
+  frequencyHz: number;
+};
 
 export type RunSessionScreenProps = {
   helmetValues: protocolSettings;
-
   onSaveProtocol?: () => void;
   onStart?: () => void;
   onStop?: () => void;
-
-  // Styling
   contentStyle?: ViewStyle;
 };
 
 export default function RunSessionScreen() {
   const { protocol } = useProtocol();
-  const { width } = useWindowDimensions();
-  const base = 390;
-  const scale = Math.max(0.8, Math.min(1.25, width / base));
-  const bottomControlsHeight = Math.round(84 * scale);
+  const { width, height } = useWindowDimensions();
+  const baseWidth = 390;
+  const baseHeight = 844;
+  const globalScale = Math.max(
+    0.65,
+    Math.min(1, Math.min(width / baseWidth, height / baseHeight)),
+  );
+  const bottomControlsHeight = Math.round(84 * globalScale);
   const bottomOffset = Platform.OS === "android" ? 28 : 16;
 
-  // log for sanity
   useEffect(() => {
     console.log("ProtocolRunPage protocol:", JSON.stringify(protocol, null, 2));
   }, [protocol]);
 
-  // Build helmetValues from context protocol (fallback if none)
   const helmetValues: protocolSettings = useMemo(() => {
     if (!protocol) {
-      // Fallback if something navigates here without a selected protocol
       return {
         id: "local-default",
         name: "Quick Session",
@@ -83,19 +93,31 @@ export default function RunSessionScreen() {
     };
   }, [protocol]);
 
-  /** Timer + countdown logic */
+  const zoneDisplays: ZoneDisplay[] = useMemo(() => {
+    return Array.from({ length: 12 }, (_, i) => {
+      const zoneId = i + 1;
+      const cfg = protocol?.Zones?.[zoneId];
+
+      return {
+        zoneId,
+        isActive: !!cfg,
+        powerLevel: cfg?.powerLevel ?? 0,
+        frequencyHz: cfg?.frequencyHz ?? 0,
+      };
+    });
+  }, [protocol]);
+
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const initialTotalSeconds = useMemo(
     () => helmetValues.timeMin * 60 + helmetValues.timeSec,
-    [helmetValues.timeMin, helmetValues.timeSec]
+    [helmetValues.timeMin, helmetValues.timeSec],
   );
 
   const [remaining, setRemaining] = useState<number>(initialTotalSeconds);
   const [running, setRunning] = useState<boolean>(false);
   const [stopped, setStopped] = useState<boolean>(false);
 
-  // Reset timer when helmetValues change (i.e. a different protocol selected)
   useEffect(() => {
     setRemaining(initialTotalSeconds);
     setRunning(false);
@@ -106,7 +128,6 @@ export default function RunSessionScreen() {
     }
   }, [initialTotalSeconds]);
 
-  // Cleanup interval on unmount
   useEffect(() => {
     return () => {
       if (timerRef.current) {
@@ -117,10 +138,9 @@ export default function RunSessionScreen() {
   }, []);
 
   const startTimer = useCallback(() => {
-    if (running) return; // already running
-    if (remaining <= 0) return; // nothing to start
+    if (running) return;
+    if (remaining <= 0) return;
 
-    // clear any stray timer
     if (timerRef.current) {
       clearInterval(timerRef.current as any);
       timerRef.current = null;
@@ -132,7 +152,6 @@ export default function RunSessionScreen() {
     timerRef.current = setInterval(() => {
       setRemaining((r) => {
         if (r <= 1) {
-          // stop at zero
           if (timerRef.current) {
             clearInterval(timerRef.current as any);
             timerRef.current = null;
@@ -145,7 +164,6 @@ export default function RunSessionScreen() {
     }, 1000);
   }, [running, remaining]);
 
-  // Pause timer logic
   const pauseTimer = useCallback(() => {
     if (timerRef.current) {
       clearInterval(timerRef.current as any);
@@ -154,7 +172,6 @@ export default function RunSessionScreen() {
     setRunning(false);
   }, []);
 
-  // Stop timer logic
   const stopTimer = useCallback(() => {
     if (timerRef.current) {
       clearInterval(timerRef.current as any);
@@ -165,15 +182,9 @@ export default function RunSessionScreen() {
     setStopped(true);
   }, [initialTotalSeconds]);
 
-  /** Derived labels for formatting time and hz */
   const mm = useMemo(() => pad2(Math.floor(remaining / 60)), [remaining]);
   const ss = useMemo(() => pad2(remaining % 60), [remaining]);
-  const freqLabel = useMemo(
-    () => `${helmetValues.frequencyHz} Hz`,
-    [helmetValues.frequencyHz]
-  );
 
-  // UX helpers
   const isComplete = remaining === 0;
   const isAtInitial = remaining === initialTotalSeconds;
 
@@ -184,9 +195,12 @@ export default function RunSessionScreen() {
       : isAtInitial
         ? "Start"
         : "Resume";
-  const primaryOnPress = running ? pauseTimer : isComplete ? undefined : startTimer;
+  const primaryOnPress = running
+    ? pauseTimer
+    : isComplete
+      ? undefined
+      : startTimer;
 
-  // Compute status
   let statusText = "";
   let statusDotStyle = s.statusPaused;
   if (isAtInitial && !running) {
@@ -205,8 +219,6 @@ export default function RunSessionScreen() {
 
   return (
     <SafeAreaView style={s.screen}>
-      {/* Header*/} 
-      <BackButton />
       <View style={s.topBar}>
         <Pressable
           onPress={() => router.push("/protocolPage")}
@@ -218,30 +230,24 @@ export default function RunSessionScreen() {
           <Text style={s.iconTxt}>‹</Text>
         </Pressable>
 
-        <Text
-          style={s.title}
-          accessibilityRole="header"
-          testID="hdr-session"
-        >
+        <Text style={s.title} accessibilityRole="header" testID="hdr-session">
           {helmetValues.name}
         </Text>
-
-        
       </View>
 
-      <View
-        style={[
-          s.content,
-          { paddingBottom: bottomControlsHeight + bottomOffset + 12 },
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={[
+          { paddingHorizontal: 20, paddingTop: 8 },
+          { paddingBottom: bottomControlsHeight + bottomOffset + 24 },
         ]}
+        keyboardShouldPersistTaps="handled"
       >
-        {/* Time */}
         <Row>
           <InfoCard value={mm} label="Minutes" testID="card-minutes" />
           <InfoCard value={ss} label="Seconds" testID="card-seconds" />
         </Row>
 
-        {/* Status indicator */}
         <View style={s.statusWrap} testID="status-wrap">
           <View style={[s.statusDot, statusDotStyle]} />
           <Text style={s.statusText} testID="status-text">
@@ -249,55 +255,36 @@ export default function RunSessionScreen() {
           </Text>
         </View>
 
-        {/* Power & Frequency */}
-        <Row>
-          <InfoCard
-            value={helmetValues.powerLevel}
-            label="Power Level"
-            large
-            testID="card-power"
-          />
-          <InfoCard
-            value={freqLabel}
-            label="Frequency"
-            large
-            testID="card-frequency"
-          />
-        </Row>
-
-        {/* Zones */}
         <View style={s.zonesWrap}>
           <Text style={s.zonesTitle} testID="lbl-zones">
-            Zones Enabled
+            Zone Settings
           </Text>
-          <ZoneSquares
-            active={helmetValues.activeZones}
-            showNumbers
-            testID="zones-grid"
-          />
+
+          <ZoneSettingsGrid zones={zoneDisplays} />
         </View>
 
-        {/* Bottom controls */}
-        <View
-          style={[
-            s.bottomRow,
-            {
-              position: "absolute",
-              left: 0,
-              right: 0,
-              bottom: bottomOffset,
-              paddingHorizontal: Math.round(20 * scale),
-              paddingVertical: Math.round(10 * scale),
-            },
-          ]}
-        >
-          <PrimaryButton
-            title={primaryTitle}
-            onPress={primaryOnPress}
-            testID="btn-start-pause"
-          />
-          <SecondaryButton title="Stop" onPress={stopTimer} testID="btn-stop" />
-        </View>
+        <View style={{ height: 20 }} />
+      </ScrollView>
+
+      <View
+        style={[
+          s.bottomRowFixed,
+          {
+            position: "absolute",
+            left: 0,
+            right: 0,
+            bottom: bottomOffset,
+            paddingVertical: Math.round(10 * globalScale),
+            paddingHorizontal: Math.round(20 * globalScale),
+          },
+        ]}
+      >
+        <PrimaryButton
+          title={primaryTitle}
+          onPress={primaryOnPress}
+          testID="btn-start-pause"
+        />
+        <SecondaryButton title="Stop" onPress={stopTimer} testID="btn-stop" />
       </View>
     </SafeAreaView>
   );
@@ -318,11 +305,26 @@ function InfoCard({
   large?: boolean;
   testID?: string;
 }) {
-  const { width } = useWindowDimensions();
-  const base = 390;
-  const scale = Math.max(0.8, Math.min(1.25, width / base));
+  const { width, height } = useWindowDimensions();
+  const baseW = 390;
+  const baseH = 844;
+  const scale = Math.max(
+    0.65,
+    Math.min(1, Math.min(width / baseW, height / baseH)),
+  );
+
   return (
-    <View style={s.card} testID={testID} accessibilityLabel={`${label} card`}>
+    <View
+      style={[
+        s.card,
+        {
+          paddingVertical: Math.round(18 * scale),
+          paddingHorizontal: Math.round(16 * scale),
+        },
+      ]}
+      testID={testID}
+      accessibilityLabel={`${label} card`}
+    >
       <Text
         style={[
           s.cardValue,
@@ -339,62 +341,36 @@ function InfoCard({
   );
 }
 
-/* 12 squares, green when active */
-function ZoneSquares({
-  active,
-  showNumbers = true,
-  style,
-  testID,
-}: {
-  active: number[];
-  showNumbers?: boolean;
-  style?: ViewStyle;
-  testID?: string;
-}) {
-  const { width } = useWindowDimensions();
-  const baseWidth = 390;
-  const scale = Math.max(0.75, Math.min(1.25, width / baseWidth));
-  const horizontalPadding = 56;
-  const availableWidth = Math.max(180, width - horizontalPadding);
-  const columns = Math.min(4, Math.max(2, Math.floor(availableWidth / 80)));
-  const gap = Math.round(8 * scale);
-  const rawSZ = Math.floor((availableWidth - gap * (columns - 1)) / columns);
-  const minSZ = 44;
-  const maxSZ = 80;
-  const SZ = Math.max(minSZ, Math.min(maxSZ, rawSZ));
-
-  const numStyle = { fontSize: Math.round(12 * scale) };
-
+function ZoneSettingsGrid({ zones }: { zones: ZoneDisplay[] }) {
   return (
-    <View
-      style={[s.zoneWrap, { justifyContent: "center", flexWrap: "wrap" }, style]}
-      testID={testID}
-      accessibilityLabel="Zone squares"
-    >
-      {Array.from({ length: 12 }, (_, i) => i + 1).map((n) => {
-        const isOn = active.includes(n);
-        const boxStyle = [
-          s.zoneBox,
-          { width: SZ, height: SZ, borderRadius: Math.round(SZ * 0.25) },
-          isOn ? s.zoneOn : s.zoneOff,
-        ];
+    <View style={s.zoneGrid}>
+      {zones.map((zone) => (
+        <View
+          key={zone.zoneId}
+          style={[s.zoneCard, zone.isActive ? s.zoneCardOn : s.zoneCardOff]}
+        >
+          <Text style={[s.zoneCardTitle, !zone.isActive && s.zoneCardTitleOff]}>
+            Zone {zone.zoneId}
+          </Text>
 
-        return (
-          <View key={n} style={{ marginRight: gap, marginBottom: gap }}>
-            <View style={boxStyle} testID={`zone-${n}`}>
-              {showNumbers && (
-                <Text
-                  style={
-                    isOn ? [s.zoneNumOn, numStyle] : [s.zoneNumOff, numStyle]
-                  }
-                >
-                  {n}
-                </Text>
-              )}
-            </View>
-          </View>
-        );
-      })}
+          {zone.isActive ? (
+            <>
+              <Text style={s.zoneCardValue}>{zone.powerLevel}%</Text>
+              <Text style={s.zoneCardLabel}>Power</Text>
+
+              <Text style={[s.zoneCardValue, { marginTop: 6 }]}>
+                {zone.frequencyHz} Hz
+              </Text>
+              <Text style={s.zoneCardLabel}>Frequency</Text>
+            </>
+          ) : (
+            <>
+              <Text style={s.zoneCardInactive}>Off</Text>
+              <Text style={s.zoneCardInactiveSub}>Not selected</Text>
+            </>
+          )}
+        </View>
+      ))}
     </View>
   );
 }
@@ -460,13 +436,13 @@ const s = StyleSheet.create({
     backgroundColor: AppColors.background,
   },
   topBar: {
+    position: "relative",
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 20,
-    paddingTop: 42,
-    marginBottom: 18,
-    position: "relative",
+    paddingTop: 26,
+    marginBottom: 20,
   },
   iconBtn: {
     width: 40,
@@ -475,10 +451,15 @@ const s = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  iconTxt: { color: AppColors.text, fontSize: 20, fontWeight: "800", opacity: 0.9 },
+  iconTxt: {
+    color: AppColors.text,
+    fontSize: 20,
+    fontWeight: "800",
+    opacity: 0.9,
+  },
   title: {
     color: AppColors.text,
-    fontSize: 44,
+    fontSize: 30,
     fontWeight: "800",
     position: "absolute",
     left: 0,
@@ -486,8 +467,7 @@ const s = StyleSheet.create({
     textAlign: "center",
     zIndex: 1,
   },
-  content: { flex: 1, paddingHorizontal: 28, paddingTop: 8 },
-  row: { flexDirection: "row", gap: 18, marginBottom: 20 },
+  row: { flexDirection: "row", gap: 18, marginBottom: 14 },
   card: {
     flex: 1,
     backgroundColor: AppColors.card,
@@ -498,40 +478,130 @@ const s = StyleSheet.create({
     borderColor: AppColors.border,
     alignItems: "center",
   },
-  cardValue: { color: AppColors.text, fontSize: 34, fontWeight: "800", marginBottom: 8 },
+  cardValue: {
+    color: AppColors.text,
+    fontSize: 34,
+    fontWeight: "800",
+    marginBottom: 8,
+  },
   cardValueLg: { fontSize: 36 },
-  cardLabel: { color: AppColors.textMuted, fontSize: 14, fontWeight: "600" },
-  zonesWrap: { marginTop: 14, marginBottom: 26, alignItems: "center", width: "100%" },
-  zonesTitle: { color: AppColors.text, fontSize: 24, fontWeight: "800", marginBottom: 12, textAlign: "center", width: "100%" },
-  zoneWrap: { flexDirection: "row", flexWrap: "wrap", justifyContent: "center" },
-  zoneBox: {
+  cardLabel: {
+    color: AppColors.textMuted,
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  zonesWrap: {
+    marginTop: 4,
+    marginBottom: 12,
+    width: "100%",
+  },
+  zonesTitle: {
+    color: AppColors.text,
+    fontSize: 26,
+    fontWeight: "800",
+    marginBottom: 12,
+    textAlign: "center",
+    width: "100%",
+  },
+  zoneGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+  },
+  zoneCard: {
+    width: "48%",
+    height: 104,
+    borderRadius: 12,
+    borderWidth: 1,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    marginBottom: 8,
     alignItems: "center",
     justifyContent: "center",
+  },
+  zoneCardOn: {
+    backgroundColor: AppColors.card,
+    borderColor: AppColors.zoneBorderOn,
+  },
+  zoneCardOff: {
+    backgroundColor: AppColors.zoneOff,
+    borderColor: AppColors.border,
+    opacity: 0.82,
+  },
+  zoneCardTitle: {
+    color: AppColors.text,
+    fontSize: 16,
+    fontWeight: "800",
+    marginBottom: 1,
+    textAlign: "center",
+  },
+  zoneCardTitleOff: {
+    color: AppColors.textMuted,
+  },
+  zoneCardValue: {
+    color: AppColors.text,
+    fontSize: 18,
+    fontWeight: "800",
+    textAlign: "center",
+    lineHeight: 18,
+  },
+  zoneCardLabel: {
+    color: AppColors.textMuted,
+    fontSize: 10,
+    fontWeight: "600",
+    textAlign: "center",
+    lineHeight: 10,
+  },
+  zoneCardInactive: {
+    color: AppColors.textMuted,
+    fontSize: 16,
+    fontWeight: "700",
+    marginTop: 0,
+    textAlign: "center",
+  },
+  zoneCardInactiveSub: {
+    color: AppColors.textMuted,
+    fontSize: 9,
+    fontWeight: "500",
+    marginTop: 0,
+    textAlign: "center",
+  },
+  statusWrap: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  statusDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 6,
+    marginRight: 8,
     borderWidth: 1,
     borderColor: AppColors.zoneBorder,
   },
-  zoneOn: { backgroundColor: AppColors.zoneOn, borderColor: AppColors.zoneBorderOn },
-  zoneOff: { backgroundColor: AppColors.zoneOff },
-  zoneNumOn: { color: AppColors.text, fontWeight: "800", fontSize: 14 },
-  zoneNumOff: { color: AppColors.zoneNumOff, fontWeight: "700", fontSize: 14 },
-  statusWrap: { flexDirection: "row", alignItems: "center", marginBottom: 14 },
-  statusDot: { width: 10, height: 10, borderRadius: 6, marginRight: 8, borderWidth: 1, borderColor: AppColors.zoneBorder },
   statusRunning: { backgroundColor: AppColors.statusRunning },
   statusIdle: { backgroundColor: AppColors.statusIdle },
   statusPaused: { backgroundColor: AppColors.statusPaused },
   statusComplete: { backgroundColor: AppColors.button },
-  statusText: { color: AppColors.textMuted, fontSize: 16, fontWeight: "700" },
-  bottomRow: {
+  statusText: {
+    color: AppColors.textMuted,
+    fontSize: 16,
+    fontWeight: "700",
+  },
+  bottomRowFixed: {
     flexDirection: "row",
-    gap: 20,
-    marginTop: "auto",
-    marginBottom: 22,
+    gap: 16,
+    paddingHorizontal: 28,
+    paddingVertical: 12,
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: "transparent",
   },
   btnPrimary: {
     flex: 1,
     backgroundColor: AppColors.primary,
     borderRadius: 16,
-    paddingVertical: 20,
+    paddingVertical: 16,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -539,13 +609,24 @@ const s = StyleSheet.create({
     flex: 1,
     backgroundColor: AppColors.button,
     borderRadius: 16,
-    paddingVertical: 20,
+    paddingVertical: 16,
     alignItems: "center",
     justifyContent: "center",
   },
-  btnPrimaryTxt: { color: AppColors.text, fontSize: 20, fontWeight: "800" },
-  btnSecondaryTxt: { color: AppColors.text, fontSize: 20, fontWeight: "800" },
-  btnPressed: { opacity: 0.9, backgroundColor: AppColors.primaryPressed },
+  btnPrimaryTxt: {
+    color: AppColors.text,
+    fontSize: 20,
+    fontWeight: "800",
+  },
+  btnSecondaryTxt: {
+    color: AppColors.text,
+    fontSize: 20,
+    fontWeight: "800",
+  },
+  btnPressed: {
+    opacity: 0.9,
+    backgroundColor: AppColors.primaryPressed,
+  },
 });
 
 function pad2(n: number) {

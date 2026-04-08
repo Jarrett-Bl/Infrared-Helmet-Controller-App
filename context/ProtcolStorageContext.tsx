@@ -21,6 +21,7 @@ type ProtocolContextValue = {
   clearEditingProtocol: () => void;
   clearProtocol: () => void;
   deleteProtocol: (id: number) => Promise<void>;
+  removeZonesFromProtocol: (zoneIds: number[]) => void;
 };
 
 const ProtocolStorageContext = createContext<ProtocolContextValue | undefined>(
@@ -62,11 +63,12 @@ export function ProtocolProvider({ children }: { children: ReactNode }) {
   const setZonesFromSelection = (zoneIds: number[]) => {
     setProtocol((prev) => {
       const base = ensureBaseProtocol(prev);
-      const prevZones = base.Zones ?? {};
-      const nextZones: Record<number, ZoneConfig> = {};
+      const nextZones: Record<number, ZoneConfig> = { ...(base.Zones ?? {}) };
 
       zoneIds.forEach((id) => {
-        nextZones[id] = prevZones[id] ?? { powerLevel: 0, frequencyHz: 0 };
+        if (!nextZones[id]) {
+          nextZones[id] = { powerLevel: 0, frequencyHz: 0 };
+        }
       });
 
       return { ...base, Zones: nextZones };
@@ -171,6 +173,20 @@ export function ProtocolProvider({ children }: { children: ReactNode }) {
     setEditingProtocolId(null);
   };
 
+  const removeZonesFromProtocol = (zoneIds: number[]) => {
+    setProtocol((prev) => {
+      if (!prev) return prev;
+
+      const nextZones: Record<number, ZoneConfig> = { ...(prev.Zones ?? {}) };
+
+      zoneIds.forEach((id) => {
+        delete nextZones[id];
+      });
+
+      return { ...prev, Zones: nextZones };
+    });
+  };
+
   return (
     <ProtocolStorageContext.Provider
       value={{
@@ -188,6 +204,7 @@ export function ProtocolProvider({ children }: { children: ReactNode }) {
         clearEditingProtocol,
         deleteProtocol,
         clearProtocol,
+        removeZonesFromProtocol,
       }}
     >
       {children}

@@ -1,4 +1,3 @@
-import BackButton from "@/components/BackButton";
 import { AppColors } from "@/constants/theme";
 import Slider from "@react-native-community/slider";
 import { router } from "expo-router";
@@ -8,12 +7,13 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useProtocol } from "../../context/ProtcolStorageContext";
 import { styles } from "../../styles/sharedStyles";
-export default function SimpleTimePage() {
+
+export default function ComplexTimePage() {
   const [minutes, setMinutes] = useState(15);
   const { protocol, initProtocol, setTime } = useProtocol();
 
   useEffect(() => {
-    if (!protocol || protocol.editorType !== "simple") return;
+    if (!protocol || protocol.editorType !== "complex") return;
 
     if (typeof protocol.timeMin === "number") {
       setMinutes(protocol.timeMin);
@@ -22,24 +22,22 @@ export default function SimpleTimePage() {
 
   const handleNext = () => {
     if (!protocol) {
-      initProtocol("simple");
+      initProtocol("complex");
     }
 
     setTime(minutes, 0);
     router.push({
       pathname: "/runPage",
-      params: { flow: "simple" },
+      params: { flow: "complex" },
     });
   };
 
   return (
     <SafeAreaView style={styles.screen}>
       <StatusBar style="light" backgroundColor={AppColors.background} />
-      <BackButton />
-      <Text style={styles.title}>Select Your Session Time</Text>
 
       <Pressable
-        onPress={() => router.push("/frequencyPage")}
+        onPress={() => router.push("/complexZoneSelection")}
         style={{
           position: "absolute",
           left: 20,
@@ -62,6 +60,8 @@ export default function SimpleTimePage() {
           {"<"}
         </Text>
       </Pressable>
+
+      <Text style={styles.title}>Select Your Session Time</Text>
 
       <View style={lStyles.body}>
         <View style={[styles.card, lStyles.cardGrow]}>
@@ -129,13 +129,6 @@ export default function SimpleTimePage() {
     </SafeAreaView>
   );
 }
-
-export const options = {
-  title: "Time Selection Basic User",
-  headerStyle: { backgroundColor: AppColors.background },
-  headerTintColor: AppColors.text,
-  contentStyle: { backgroundColor: AppColors.background },
-};
 
 const lStyles = StyleSheet.create({
   body: { flex: 1, justifyContent: "space-between" },

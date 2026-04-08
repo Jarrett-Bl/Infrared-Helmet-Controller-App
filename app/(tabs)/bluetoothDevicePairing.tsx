@@ -4,65 +4,121 @@ import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import BackButton from "../../components/BackButton";
-import { styles } from "../../styles/sharedStyles";
+
+import { styles as sharedStyles } from "@/styles/sharedStyles";
 
 export default function BlueToothConnectionPage2() {
   const { clearProtocol } = useProtocol();
 
   return (
-    <SafeAreaView style={styles.screen}>
-      <StatusBar style="light" backgroundColor={AppColors.background} /> 
-      <BackButton />
+    <SafeAreaView style={sharedStyles.screen} edges={["top", "left", "right"]}>
+      <StatusBar style="light" backgroundColor={AppColors.background} />
 
-      <Text style={[styles.title, { marginTop: 8 }]}>
-        Press Start to begin designing a protocol
+      <Text style={[sharedStyles.title, { marginTop: 8, fontSize: 28 }]}>
+        Begin designing a simple or complex protocol
       </Text>
 
-      <View style={styles.center}>
-        <Pressable
-          onPress={() => {
-            clearProtocol();
-            router.push("/zoneSelection");
-          }}
-          style={({ pressed }) => [
-            lStyles.startBtn,
-            pressed && { opacity: 0.9 },
-          ]}
-        >
-          <Text style={lStyles.startLabel}>Start</Text>
-        </Pressable>
+      <Text
+        style={[
+          sharedStyles.cardSub,
+          {
+            textAlign: "center",
+            marginBottom: 8,
+            alignSelf: "center",
+            fontSize: 18,
+          },
+        ]}
+      >
+        Choose an editor type to continue
+      </Text>
+
+      <View style={localStyles.centerBlock}>
+        <View style={localStyles.row}>
+          <Pressable
+            onPress={() => {
+              clearProtocol();
+              router.push("/zoneSelection");
+            }}
+            style={({ pressed }) => [
+              localStyles.box,
+              pressed && { opacity: 0.88 },
+            ]}
+          >
+            <Text style={localStyles.boxTitle}>Simple</Text>
+            <Text style={localStyles.boxSub}>One setting per step</Text>
+          </Pressable>
+
+          <Pressable
+            onPress={() => {
+              clearProtocol();
+              router.push({
+                pathname: "/complexZoneSelection",
+                params: { fresh: "1" },
+              });
+            }}
+            style={({ pressed }) => [
+              localStyles.box,
+              pressed && { opacity: 0.88 },
+            ]}
+          >
+            <Text style={localStyles.boxTitle}>Complex</Text>
+            <Text style={localStyles.boxSub}>Per-zone control</Text>
+          </Pressable>
+        </View>
       </View>
     </SafeAreaView>
   );
 }
 
-const lStyles = StyleSheet.create({
-  startBtn: {
-    minWidth: 260,
-    minHeight: 100,
-    paddingVertical: 16,
-    paddingHorizontal: 28,
-    borderRadius: 999,
-    alignItems: "center",
+const localStyles = StyleSheet.create({
+  centerBlock: {
+    flex: 1,
+    width: "100%",
     justifyContent: "center",
-    backgroundColor: AppColors.primary,
+    alignItems: "center",
+    paddingVertical: 16,
+  },
+  row: {
+    flexDirection: "row",
+    gap: 18,
+    width: "100%",
+    maxWidth: 760,
+    paddingHorizontal: 8,
+  },
+  box: {
+    flex: 1,
+    minWidth: 0,
+    minHeight: 152,
+    paddingVertical: 24,
+    paddingHorizontal: 16,
+    borderRadius: 14,
+    backgroundColor: AppColors.card,
     borderWidth: 1,
     borderColor: AppColors.border,
+    alignItems: "center",
+    justifyContent: "center",
     ...Platform.select({
-      android: { elevation: 2 },
+      android: { elevation: 3 },
       ios: {
         shadowColor: "#000",
-        shadowOpacity: 0.2,
-        shadowRadius: 6,
         shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.14,
+        shadowRadius: 6,
       },
+      default: {},
     }),
   },
-  startLabel: {
+  boxTitle: {
+    fontSize: 22,
+    fontWeight: "700",
     color: AppColors.text,
-    fontSize: 24,
-    fontWeight: "800",
-    letterSpacing: 0.3,
+    textAlign: "center",
+  },
+  boxSub: {
+    marginTop: 10,
+    fontSize: 16,
+    color: AppColors.textMuted,
+    textAlign: "center",
+    lineHeight: 22,
   },
 });

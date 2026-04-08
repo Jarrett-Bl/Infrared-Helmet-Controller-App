@@ -1,23 +1,28 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router, useFocusEffect } from "expo-router";
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import {
   Alert,
   FlatList,
+  KeyboardAvoidingView,
+  Modal,
   Platform,
   Pressable,
+  StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
   useWindowDimensions,
 } from "react-native";
 import { styles } from "../../styles/sharedStyles";
 
-<<<<<<< HEAD
+import {
+  ProtocolJsonImportButton,
+  shareProtocolJsonFile,
+} from "@/components/protocolJsonTransfer";
 import { AppColors } from "@/constants/theme";
-=======
-import BackButton from "@/components/BackButton";
->>>>>>> back-nav
+import { renameProtocolSaving } from "@/lib/protocolRename";
 import { useProtocol } from "../../context/ProtcolStorageContext";
 import {
   getProtocols,
@@ -135,6 +140,15 @@ export default function ProtocolsPage() {
     [deleteProtocol, refreshProtocols],
   );
 
+  const handleRenameProtocol = useCallback(
+    async (id: number, protocol: DbProtocol, newName: string) => {
+      const ok = await renameProtocolSaving(id, protocol, newName);
+      if (ok) await refreshProtocols();
+      return ok;
+    },
+    [refreshProtocols],
+  );
+
   const onEdit = (card: ProtocolCard) => {
     const full = dbProtocols.find((p) => String(p.id) === card.id);
     if (!full) {
@@ -162,22 +176,35 @@ export default function ProtocolsPage() {
     router.push("/protocolRunPage");
   };
 
-  const renderItem = ({ item }: { item: ProtocolCard }) => (
-    <Card
-      item={item}
-      onLoad={onLoad}
-      onEdit={onEdit}
-      onDelete={handleDeleteProtocol}
-    />
-  );
+  const renderItem = ({ item }: { item: ProtocolCard }) => {
+    const full = dbProtocols.find((p) => String(p.id) === item.id);
+    return (
+      <Card
+        item={item}
+        protocolForExport={full}
+        onLoad={onLoad}
+        onEdit={onEdit}
+        onDelete={handleDeleteProtocol}
+        onRename={handleRenameProtocol}
+      />
+    );
+  };
 
   return (
     <View style={styles.screen}>
-      <Text style={styles.title}>Protocols</Text>
-<<<<<<< HEAD
-=======
-    <BackButton />
->>>>>>> back-nav
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          marginBottom: 16,
+        }}
+      >
+        <View style={{ minWidth: 44 }} />
+        <Text style={[styles.title, { flex: 1, marginBottom: 0 }]}>
+          Protocols
+        </Text>
+        <ProtocolJsonImportButton onImported={() => refreshProtocols()} />
+      </View>
 
       <FlatList
         data={cards}
@@ -195,20 +222,66 @@ export default function ProtocolsPage() {
   );
 }
 
+const OVERFLOW_MENU_WIDTH = 216;
+const OVERFLOW_MENU_EST_HEIGHT = 220;
+
 function Card({
   item,
+  protocolForExport,
   onLoad,
   onEdit,
   onDelete,
+  onRename,
 }: {
   item: ProtocolCard;
+  protocolForExport?: DbProtocol;
   onLoad: (p: ProtocolCard) => void;
   onEdit: (p: ProtocolCard) => void;
   onDelete: (id: number, name: string) => void;
+  onRename: (
+    id: number,
+    protocol: DbProtocol,
+    newName: string,
+  ) => boolean | Promise<boolean>;
 }) {
-  const { width } = useWindowDimensions();
-  const isNarrow = width < 410;
+  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
+  const isNarrow = windowWidth < 410;
   const protocolId = Number(item.id);
+
+  const overflowAnchorRef = useRef<View>(null);
+  const [menuVisible, setMenuVisible] = useState(false);
+  const [menuPos, setMenuPos] = useState({ left: 0, top: 0 });
+  const [renameModalVisible, setRenameModalVisible] = useState(false);
+  const [renameDraft, setRenameDraft] = useState("");
+
+  const closeMenu = useCallback(() => setMenuVisible(false), []);
+
+  const openOverflowMenu = useCallback(() => {
+    overflowAnchorRef.current?.measureInWindow((x, y, w, h) => {
+      const rightAlignedLeft = Math.max(
+        8,
+        Math.min(x + w - OVERFLOW_MENU_WIDTH, windowWidth - OVERFLOW_MENU_WIDTH - 8),
+      );
+      let top = y + h + 4;
+      if (top + OVERFLOW_MENU_EST_HEIGHT > windowHeight - 8) {
+        top = Math.max(8, y - OVERFLOW_MENU_EST_HEIGHT - 4);
+      }
+      setMenuPos({ left: rightAlignedLeft, top });
+      setMenuVisible(true);
+    });
+  }, [windowWidth, windowHeight]);
+
+  const openRenameModal = useCallback(() => {
+    if (!protocolForExport) return;
+    setRenameDraft(protocolForExport.name);
+    setRenameModalVisible(true);
+  }, [protocolForExport]);
+
+  const submitRename = useCallback(async () => {
+    if (!protocolForExport) return;
+    const ok = await onRename(protocolId, protocolForExport, renameDraft);
+    if (ok) setRenameModalVisible(false);
+  }, [renameDraft, protocolForExport, protocolId, onRename]);
 
   return (
     <View
@@ -239,19 +312,19 @@ function Card({
         style={
           isNarrow
             ? {
-                flexDirection: "row",
-                alignItems: "center",
-                gap: 10,
-                marginTop: 8,
-                alignSelf: "stretch",
-              }
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 10,
+              marginTop: 8,
+              alignSelf: "stretch",
+            }
             : {
-                flexDirection: "row",
-                alignItems: "center",
-                gap: 10,
-                marginLeft: 16,
-                alignSelf: "center",
-              }
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 10,
+              marginLeft: 16,
+              alignSelf: "center",
+            }
         }
       >
         <TouchableOpacity
@@ -259,12 +332,12 @@ function Card({
             styles.loadBtn,
             isNarrow
               ? {
-                  flex: 1,
-                  marginLeft: 0,
-                  marginTop: 0,
-                  alignSelf: "stretch",
-                  alignItems: "center",
-                }
+                flex: 1,
+                marginLeft: 0,
+                marginTop: 0,
+                alignSelf: "stretch",
+                alignItems: "center",
+              }
               : { marginLeft: 0 },
           ]}
           onPress={() => onLoad(item)}
@@ -274,50 +347,299 @@ function Card({
         </TouchableOpacity>
 
         {item.id ? (
-          <Pressable
-            onPress={() => onEdit(item)}
-            hitSlop={10}
-            accessibilityRole="button"
-            accessibilityLabel="Edit protocol"
-            testID={`btn-edit-protocol-${item.id}`}
-            style={{
-              padding: 8,
-              justifyContent: "center",
-              alignItems: "center",
-            }}
-          >
-            <Ionicons
-              name="create-outline"
-              size={22}
-              color={AppColors.statusIdle}
-            />
-          </Pressable>
-        ) : null}
-
-        {item.id ? (
-          <Pressable
-            onPress={() => onDelete(protocolId, item.name)}
-            hitSlop={10}
-            accessibilityRole="button"
-            accessibilityLabel="Delete protocol"
-            testID={`btn-delete-protocol-${item.id}`}
-            style={{
-              padding: 8,
-              justifyContent: "center",
-              alignItems: "center",
-            }}
-          >
-            <Ionicons
-              name="trash-outline"
-              size={22}
-              color={AppColors.statusIdle}
-            />
-          </Pressable>
+          <View ref={overflowAnchorRef} collapsable={false}>
+            <Pressable
+              onPress={openOverflowMenu}
+              hitSlop={10}
+              accessibilityRole="button"
+              accessibilityLabel="More actions for protocol"
+              testID={`btn-protocol-overflow-${item.id}`}
+              style={{
+                padding: 8,
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <Ionicons
+                name="ellipsis-vertical"
+                size={22}
+                color={AppColors.statusIdle}
+              />
+            </Pressable>
+          </View>
         ) : null}
       </View>
+
+      <Modal
+        visible={menuVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={closeMenu}
+      >
+        <View style={StyleSheet.absoluteFillObject}>
+          <Pressable
+            style={StyleSheet.absoluteFillObject}
+            onPress={closeMenu}
+            accessibilityLabel="Dismiss menu"
+          />
+          <View
+            style={[
+              overflowMenuStyles.panel,
+              {
+                left: menuPos.left,
+                top: menuPos.top,
+                width: OVERFLOW_MENU_WIDTH,
+              },
+            ]}
+          >
+            <Pressable
+              testID={`btn-edit-protocol-${item.id}`}
+              accessibilityRole="button"
+              accessibilityLabel="Edit protocol"
+              style={overflowMenuStyles.row}
+              onPress={() => {
+                closeMenu();
+                onEdit(item);
+              }}
+            >
+              <Ionicons
+                name="create-outline"
+                size={22}
+                color={AppColors.statusIdle}
+              />
+              <Text style={overflowMenuStyles.rowLabel}>Edit</Text>
+            </Pressable>
+
+            {protocolForExport ? (
+              <Pressable
+                testID={`btn-rename-protocol-${item.id}`}
+                accessibilityRole="button"
+                accessibilityLabel="Rename protocol"
+                style={overflowMenuStyles.row}
+                onPress={() => {
+                  closeMenu();
+                  openRenameModal();
+                }}
+              >
+                <Ionicons
+                  name="pencil-outline"
+                  size={22}
+                  color={AppColors.statusIdle}
+                />
+                <Text style={overflowMenuStyles.rowLabel}>Rename</Text>
+              </Pressable>
+            ) : null}
+
+            {protocolForExport ? (
+              <Pressable
+                testID={`btn-export-protocol-json-${protocolForExport.id ?? "new"}`}
+                accessibilityRole="button"
+                accessibilityLabel="Export protocol to JSON"
+                style={overflowMenuStyles.row}
+                onPress={() => {
+                  closeMenu();
+                  void shareProtocolJsonFile(protocolForExport);
+                }}
+              >
+                <Ionicons
+                  name="share-outline"
+                  size={22}
+                  color={AppColors.statusIdle}
+                />
+                <Text style={overflowMenuStyles.rowLabel}>Export</Text>
+              </Pressable>
+            ) : null}
+
+            <Pressable
+              testID={`btn-delete-protocol-${item.id}`}
+              accessibilityRole="button"
+              accessibilityLabel="Delete protocol"
+              style={overflowMenuStyles.row}
+              onPress={() => {
+                closeMenu();
+                onDelete(protocolId, item.name);
+              }}
+            >
+              <Ionicons
+                name="trash-outline"
+                size={22}
+                color={AppColors.statusIdle}
+              />
+              <Text
+                style={[overflowMenuStyles.rowLabel, overflowMenuStyles.destructiveLabel]}
+              >
+                Delete
+              </Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal
+        visible={renameModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setRenameModalVisible(false)}
+      >
+        <KeyboardAvoidingView
+          style={renameModalStyles.keyboardRoot}
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
+        >
+          <View style={renameModalStyles.centerWrap}>
+            <Pressable
+              style={renameModalStyles.backdrop}
+              onPress={() => setRenameModalVisible(false)}
+              accessibilityLabel="Dismiss rename"
+            />
+            <View style={renameModalStyles.sheet} accessibilityViewIsModal>
+              <Text style={renameModalStyles.sheetTitle}>Rename protocol</Text>
+              <TextInput
+                value={renameDraft}
+                onChangeText={setRenameDraft}
+                placeholder="Protocol name"
+                placeholderTextColor={AppColors.textMuted}
+                autoFocus
+                selectTextOnFocus
+                style={renameModalStyles.input}
+                autoCorrect={false}
+                accessibilityLabel="New protocol name"
+              />
+              <View style={renameModalStyles.sheetActions}>
+                <Pressable
+                  onPress={() => setRenameModalVisible(false)}
+                  style={renameModalStyles.sheetBtn}
+                  accessibilityRole="button"
+                  accessibilityLabel="Cancel rename"
+                >
+                  <Text style={renameModalStyles.sheetBtnTextMuted}>Cancel</Text>
+                </Pressable>
+                <Pressable
+                  onPress={() => void submitRename()}
+                  style={renameModalStyles.sheetBtnPrimary}
+                  accessibilityRole="button"
+                  accessibilityLabel="Save protocol name"
+                >
+                  <Text style={renameModalStyles.sheetBtnTextPrimary}>Save</Text>
+                </Pressable>
+              </View>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
     </View>
   );
 }
+
+const renameModalStyles = StyleSheet.create({
+  keyboardRoot: {
+    flex: 1,
+  },
+  centerWrap: {
+    flex: 1,
+    justifyContent: "center",
+    paddingHorizontal: 24,
+  },
+  backdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0,0,0,0.45)",
+  },
+  sheet: {
+    zIndex: 1,
+    borderRadius: 14,
+    padding: 20,
+    backgroundColor: AppColors.card,
+    borderWidth: 1,
+    borderColor: AppColors.border,
+    ...Platform.select({
+      android: { elevation: 12 },
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.3,
+        shadowRadius: 12,
+      },
+      default: {},
+    }),
+  },
+  sheetTitle: {
+    color: AppColors.text,
+    fontSize: 18,
+    fontWeight: "600",
+    marginBottom: 14,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: AppColors.border,
+    borderRadius: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    fontSize: 16,
+    color: AppColors.text,
+    backgroundColor: AppColors.button,
+    marginBottom: 18,
+  },
+  sheetActions: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    gap: 12,
+  },
+  sheetBtn: {
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+  },
+  sheetBtnPrimary: {
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+    backgroundColor: AppColors.primary,
+  },
+  sheetBtnTextMuted: {
+    color: AppColors.textMuted,
+    fontSize: 16,
+    fontWeight: "500",
+  },
+  sheetBtnTextPrimary: {
+    color: AppColors.text,
+    fontSize: 16,
+    fontWeight: "600",
+  },
+});
+
+const overflowMenuStyles = StyleSheet.create({
+  panel: {
+    position: "absolute",
+    backgroundColor: AppColors.card,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: AppColors.border,
+    paddingVertical: 4,
+    ...Platform.select({
+      android: { elevation: 8 },
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.25,
+        shadowRadius: 8,
+      },
+      default: {},
+    }),
+  },
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+  },
+  rowLabel: {
+    color: AppColors.text,
+    fontSize: 16,
+  },
+  destructiveLabel: {
+    color: AppColors.statusIdle,
+  },
+});
 
 function ZoneGrid({ selected }: { selected: number[] }) {
   const { width } = useWindowDimensions();
