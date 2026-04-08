@@ -1,21 +1,28 @@
-import { POWER_DEFAULT, POWER_MAX, POWER_MIN, POWER_STEP, PowerSliderInput } from '@/components/FreqPageComponents';
-import { AppColors } from '@/constants/theme';
-import { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { useProtocol } from '../context/ProtcolStorageContext';
+import {
+  POWER_MAX,
+  POWER_MIN,
+  POWER_STEP,
+  PowerSliderInput,
+} from "@/components/FreqPageComponents";
+import { AppColors } from "@/constants/theme";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
-export default function PowerLevelSection() {
-  const { setPowerForAllZones } = useProtocol();
-  const [power, setPower] = useState(POWER_DEFAULT);
+type PowerLevelSectionProps = {
+  power: number;
+  onPowerChange: (value: number) => void;
+};
 
+export default function PowerLevelSection({
+  power,
+  onPowerChange,
+}: PowerLevelSectionProps) {
   const handleSetPower = (value: number) => {
     if (value < POWER_MIN || value > POWER_MAX) {
-      console.warn('Enter a valid power level (25–100%)');
+      console.warn("Enter a valid power level (0–100%)");
       return;
     }
 
-    setPower(value);
-    setPowerForAllZones(value);
+    onPowerChange(value);
   };
 
   return (
@@ -73,9 +80,9 @@ const styles = StyleSheet.create({
     paddingTop: 8,
     paddingBottom: 8,
   },
-  title: { fontSize: 24, fontWeight: '600', textAlign: 'center', padding: 10 },
+  title: { fontSize: 24, fontWeight: "600", textAlign: "center", padding: 10 },
   grid: {
-    flexDirection: 'row',
+    flexDirection: "row",
     flex: 1,
     marginTop: 8,
     marginBottom: 0,
@@ -91,8 +98,8 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: AppColors.border,
     margin: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     elevation: 3,
   },
   tileSelected: {
@@ -101,7 +108,7 @@ const styles = StyleSheet.create({
   tileText: {
     color: AppColors.text,
     fontSize: 24,
-    fontWeight: '700',
-    textAlign: 'center',
+    fontWeight: "700",
+    textAlign: "center",
   },
 });

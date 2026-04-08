@@ -4,12 +4,15 @@ import {
   FREQ_MIN,
   FREQ_STEP,
   FrequencySliderInput,
+  POWER_DEFAULT,
+  POWER_MAX,
+  POWER_MIN,
 } from "@/components/FreqPageComponents";
 import PowerLevelSection from "@/components/powerLevelComponent";
 import { AppColors } from "@/constants/theme";
-import { router } from "expo-router";
+import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useState } from "react";
 import {
   Pressable,
   ScrollView,
@@ -21,38 +24,77 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useProtocol } from "../../context/ProtcolStorageContext";
 
 export default function FrequencyPage() {
+  const params = useLocalSearchParams();
   const insets = useSafeAreaInsets();
-  const { protocol, setFrequencyForAllZones } = useProtocol();
+  const { protocol, setFrequencyForAllZones, setPowerForAllZones } =
+    useProtocol();
   const [frequency, setFrequency] = useState(FREQ_DEFAULT);
-  const didInitFromProtocol = useRef(false);
+  const [power, setPower] = useState(POWER_DEFAULT);
 
-  useEffect(() => {
-    if (didInitFromProtocol.current) return;
-    if (!protocol || protocol.editorType !== "simple") return;
+  useFocusEffect(
+    useCallback(() => {
+      const isFresh = params.fresh === "1";
+      if (isFresh) {
+        setFrequency(FREQ_DEFAULT);
+        setPower(POWER_DEFAULT);
+        return;
+      }
 
-    const zoneIds = Object.keys(protocol.Zones || {}).map(Number);
-    if (!zoneIds.length) {
-      didInitFromProtocol.current = true;
-      return;
-    }
+      if (!protocol || protocol.editorType !== "simple") return;
 
-    const firstZoneId = zoneIds[0];
-    const existingFrequency = protocol.Zones[firstZoneId]?.frequencyHz;
+      const zoneIds = Object.keys(protocol.Zones || {}).map(Number);
+      if (!zoneIds.length) {
+        setFrequency(FREQ_DEFAULT);
+        setPower(POWER_DEFAULT);
+        return;
+      }
 
-    if (typeof existingFrequency === "number") {
-      setFrequency(existingFrequency);
-    }
+      const firstZoneId = zoneIds[0];
+      const existingFrequency = protocol.Zones[firstZoneId]?.frequencyHz;
+      const existingPower = protocol.Zones[firstZoneId]?.powerLevel;
 
-    didInitFromProtocol.current = true;
-  }, [protocol]);
+      if (typeof existingFrequency === "number") {
+        setFrequency(existingFrequency);
+      } else {
+        setFrequency(FREQ_DEFAULT);
+      }
+
+      if (
+        typeof existingPower === "number" &&
+        existingPower >= POWER_MIN &&
+        existingPower <= POWER_MAX
+      ) {
+        setPower(existingPower);
+      } else {
+        setPower(POWER_DEFAULT);
+      }
+    }, [params.fresh, protocol?.editorType]),
+  );
+
+  const handlePowerChange = useCallback((value: number) => {
+    setPower(value);
+  }, []);
 
   const handleNext = () => {
     if (frequency < FREQ_MIN || frequency > FREQ_MAX) {
       console.warn("Enter a valid frequency in Hz (0–140)");
       return;
     }
+    if (power < POWER_MIN || power > POWER_MAX) {
+      console.warn("Enter a valid power level (0–100%)");
+      return;
+    }
     setFrequencyForAllZones(frequency);
-    router.push("/simpleTimePage");
+    setPowerForAllZones(power);
+    const isFresh = params.fresh === "1";
+    if (isFresh) {
+      router.push({
+        pathname: "/simpleTimePage",
+        params: { fresh: "1" },
+      });
+    } else {
+      router.push("/simpleTimePage");
+    }
   };
 
   return (
@@ -137,7 +179,7 @@ export default function FrequencyPage() {
           </View>
 
           <View style={styles.bottomHalf}>
-            <PowerLevelSection />
+            <PowerLevelSection power={power} onPowerChange={handlePowerChange} />
           </View>
 
           <View style={styles.nextButtonWrap}>

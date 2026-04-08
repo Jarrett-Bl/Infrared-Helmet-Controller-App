@@ -1,5 +1,5 @@
 import { AppColors } from "@/constants/theme";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useCallback, useEffect, useState } from "react";
 import {
@@ -73,11 +73,22 @@ const zoneStyles = StyleSheet.create({
 });
 
 export default function FunctionsScreen() {
+  const params = useLocalSearchParams();
   const insets = useSafeAreaInsets();
   const { protocol, initProtocol, setZonesFromSelection } = useProtocol();
   const [selectedZones, setSelectedZones] = useState<number[]>([]);
 
   useEffect(() => {
+    const isFresh = params.fresh === "1";
+
+    if (isFresh) {
+      setSelectedZones([]);
+      if (!protocol || protocol.editorType !== "simple") {
+        initProtocol("simple");
+      }
+      return;
+    }
+
     if (!protocol) {
       initProtocol("simple");
       return;
@@ -90,7 +101,7 @@ export default function FunctionsScreen() {
 
       setSelectedZones(existingZoneIds);
     }
-  }, [protocol, initProtocol]);
+  }, [params.fresh, protocol, initProtocol]);
 
   const zones = Array.from({ length: 12 }, (_, i) => i + 1);
 
@@ -104,7 +115,15 @@ export default function FunctionsScreen() {
 
   const handleNext = () => {
     setZonesFromSelection(selectedZones);
-    router.push("/frequencyPage");
+    const isFresh = params.fresh === "1";
+    if (isFresh) {
+      router.push({
+        pathname: "/frequencyPage",
+        params: { fresh: "1" },
+      });
+    } else {
+      router.push("/frequencyPage");
+    }
   };
 
   const isSelected = (zoneNumber: number): boolean =>
