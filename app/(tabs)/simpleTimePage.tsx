@@ -38,7 +38,7 @@ export default function SimpleTimePage() {
       <Text style={styles.title}>Select Your Session Time</Text>
 
       <Pressable
-        onPress={() => router.push("/zoneSelection")}
+        onPress={() => router.push("/frequencyPage")}
         style={{
           position: "absolute",
           left: 20,
