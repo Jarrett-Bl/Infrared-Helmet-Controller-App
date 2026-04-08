@@ -1,3 +1,4 @@
+import HomeButton from "@/components/ui/HomeButton";
 import { AppColors } from "@/constants/theme";
 import { router, useLocalSearchParams } from "expo-router";
 import { StatusBar } from "expo-status-bar";
@@ -13,12 +14,9 @@ import {
   View,
   useWindowDimensions,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useProtocol } from "../../context/ProtcolStorageContext";
 
 export default function ComplexControlPage() {
-  const insets = useSafeAreaInsets();
-
   const params = useLocalSearchParams();
   const { protocol, setZoneConfigForZones } = useProtocol();
   const { width, height } = useWindowDimensions();
@@ -111,7 +109,7 @@ export default function ComplexControlPage() {
     const powerLevel = selectedItemPower ?? 0;
     const fromText = text.trim() ? Number(text) : NaN;
     const frequencyHz =
-    selectedItemFreq ?? (Number.isFinite(fromText) ? fromText : 0);
+      selectedItemFreq ?? (Number.isFinite(fromText) ? fromText : 0);
 
     setZoneConfigForZones(zoneIds, { powerLevel, frequencyHz });
     router.push("/complexZoneSelection");
@@ -122,7 +120,6 @@ export default function ComplexControlPage() {
     text,
     setZoneConfigForZones,
   ]);
-  
 
   return (
     <SafeAreaView
@@ -453,8 +450,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  tileSelected: {
-    borderColor: AppColors.selected,
+  selectedButton: {
+    backgroundColor: AppColors.success,
   },
   buttonLabel: {
     fontWeight: "700",

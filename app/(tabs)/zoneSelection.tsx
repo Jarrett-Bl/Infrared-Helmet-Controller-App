@@ -1,3 +1,4 @@
+import { AppColors } from "@/constants/theme";
 import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useCallback, useEffect, useState } from "react";
@@ -10,7 +11,6 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { AppColors } from "@/constants/theme";
 import { useProtocol } from "../../context/ProtcolStorageContext";
 import { styles } from "../../styles/sharedStyles";
 
@@ -113,6 +113,31 @@ export default function FunctionsScreen() {
   return (
     <SafeAreaView style={styles.screen}>
       <StatusBar style="light" />
+
+      <Pressable
+        onPress={() => router.push("/bluetoothDevicePairing")}
+        style={{
+          position: "absolute",
+          left: 20,
+          top: 35,
+          width: 48,
+          height: 48,
+          justifyContent: "center",
+          alignItems: "flex-start",
+          zIndex: 2,
+        }}
+        hitSlop={10}
+      >
+        <Text
+          style={{
+            color: AppColors.text,
+            fontSize: 28,
+            fontWeight: "800",
+          }}
+        >
+          {"<"}
+        </Text>
+      </Pressable>
 
       <View style={styles.header}>
         <Text style={styles.title}>Zone Selection</Text>
