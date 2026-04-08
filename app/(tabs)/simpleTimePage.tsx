@@ -37,6 +37,31 @@ export default function SimpleTimePage() {
       <StatusBar style="light" backgroundColor={AppColors.background} />
       <Text style={styles.title}>Select Your Session Time</Text>
 
+      <Pressable
+        onPress={() => router.push("/zoneSelection")}
+        style={{
+          position: "absolute",
+          left: 20,
+          top: 35,
+          width: 48,
+          height: 48,
+          justifyContent: "center",
+          alignItems: "flex-start",
+          zIndex: 2,
+        }}
+        hitSlop={10}
+      >
+        <Text
+          style={{
+            color: AppColors.text,
+            fontSize: 28,
+            fontWeight: "800",
+          }}
+        >
+          {"<"}
+        </Text>
+      </Pressable>
+
       <View style={lStyles.body}>
         <View style={[styles.card, lStyles.cardGrow]}>
           <View style={lStyles.rangeRow}>
