@@ -63,12 +63,12 @@ export function ProtocolProvider({ children }: { children: ReactNode }) {
   const setZonesFromSelection = (zoneIds: number[]) => {
     setProtocol((prev) => {
       const base = ensureBaseProtocol(prev);
-      const nextZones: Record<number, ZoneConfig> = { ...(base.Zones ?? {}) };
+      const prevZones = base.Zones ?? {};
+      const nextZones: Record<number, ZoneConfig> = {};
 
       zoneIds.forEach((id) => {
-        if (!nextZones[id]) {
-          nextZones[id] = { powerLevel: 0, frequencyHz: 0 };
-        }
+        const existing = prevZones[id];
+        nextZones[id] = existing ?? { powerLevel: 0, frequencyHz: 0 };
       });
 
       return { ...base, Zones: nextZones };
