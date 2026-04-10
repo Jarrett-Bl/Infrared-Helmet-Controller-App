@@ -8,11 +8,21 @@ type ResourceLink = {
   label: string;
   description: string;
   url: string;
-  icon: keyof typeof Ionicons.glyphMap;
 };
 
 const RESOURCE_LINKS: ResourceLink[] = [
-  // Add links here
+  {
+    id: "1", 
+    label: "Bhakti Wellness Website", 
+    description: "Contact your provider", 
+    url: "https://bhakticlinic.com/contact-us/",
+  }, 
+  {
+    id: "2", 
+    label: "Manufacturer Website", 
+    description: "Cozing Medical Helmet Website", 
+    url: "https://www.cozingmedical.com/brain-rehab-helmet/75.html",
+  }
 ];
 
 export default function ResourcePage() {
@@ -41,12 +51,6 @@ export default function ResourcePage() {
           accessibilityLabel={item.label}
           testID={`btn-resource-${item.id}`}
         >
-          <Ionicons
-            name={item.icon}
-            size={28}
-            color={AppColors.primary}
-            style={{ marginRight: 14 }}
-          />
           <View style={{ flex: 1 }}>
             <Text style={styles.cardTitle}>{item.label}</Text>
             <Text style={styles.cardSub}>{item.description}</Text>
