@@ -91,7 +91,7 @@ export default function ComplexZoneSelectionPage() {
         setGroups([]);
         setSelectedGroupId(null);
 
-        if (!protocol) {
+        if (!protocol || protocol.editorType !== "complex") {
           initProtocol("complex");
         }
         return;
