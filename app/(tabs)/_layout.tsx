@@ -89,8 +89,8 @@ export default function TabLayout() {
       <Tabs.Screen name="protocolRunPage" options={{ href: null }} />
       <Tabs.Screen name="complexControlPage" options={{ href: null }} />
       <Tabs.Screen name="complexZoneSelection" options={{ href: null }} />
-      <Tabs.Screen name="complexTimePage" options={{ href: null }} /> 
-      
+      <Tabs.Screen name="complexTimePage" options={{ href: null }} />
+      <Tabs.Screen name="resource" options={{ href: null }} />
     </Tabs>
   );
 }
