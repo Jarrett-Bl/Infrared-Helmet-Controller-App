@@ -71,15 +71,6 @@ export default function TabLayout() {
           ),
         }}
       />
-      <Tabs.Screen
-        name="resource"
-        options={{
-          title: "Resources",
-          tabBarIcon: ({ color }) => (
-            <Ionicons name="bulb-outline" size={22} color={color} />
-          ),
-        }}
-      />
       <Tabs.Screen name="index" options={{ href: null }} />
       <Tabs.Screen name="zoneSelection" options={{ href: null }} />
       <Tabs.Screen name="simpleTimePage" options={{ href: null }} />
