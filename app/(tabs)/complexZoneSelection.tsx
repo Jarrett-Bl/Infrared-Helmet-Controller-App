@@ -1,7 +1,7 @@
 import { AppColors } from "@/constants/theme";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import {
   Pressable,
   SafeAreaView,
@@ -15,31 +15,44 @@ import { styles } from "../../styles/sharedStyles";
 
 type ZoneGroup = { id: number; zones: number[]; color: string };
 
+const GROUP_COLORS = [
+  "#04D9FF",
+  "#BC13FE",
+  "#FE019A",
+  "#FFA500",
+  "#CFFF04",
+  "#ff073a",
+  "#40E0D0",
+  "#FFC0CB",
+  "#8B4513",
+  "#000000",
+  "#FE4164",
+  "#7B68EE",
+];
+
+const arraysEqual = (a: number[], b: number[]) =>
+  a.length === b.length && a.every((value, index) => value === b[index]);
+
+const groupsEqual = (a: ZoneGroup[], b: ZoneGroup[]) =>
+  a.length === b.length &&
+  a.every(
+    (group, index) =>
+      group.id === b[index]?.id &&
+      group.color === b[index]?.color &&
+      arraysEqual(group.zones, b[index]?.zones ?? []),
+  );
+
 export default function ComplexZoneSelectionPage() {
   const params = useLocalSearchParams();
   const { protocol, initProtocol, removeZonesFromProtocol } = useProtocol();
-
-  const groupColors = [
-    "#04D9FF",
-    "#BC13FE",
-    "#FE019A",
-    "#FFA500",
-    "#CFFF04",
-    "#ff073a",
-    "#40E0D0",
-    "#FFC0CB",
-    "#8B4513",
-    "#000000",
-    "#FE4164",
-    "#7B68EE",
-  ];
+  const handledFreshRef = useRef(false);
 
   const [selectedZones, setSelectedZones] = useState<number[]>([]);
   const [groupedZones, setGroupedZones] = useState<number[]>([]);
   const [groups, setGroups] = useState<ZoneGroup[]>([]);
   const [selectedGroupId, setSelectedGroupId] = useState<number | null>(null);
 
-  // 🔥 NEW: rebuild groups from saved protocol (for edit)
+
   const rebuildGroupsFromProtocol = useCallback(() => {
     if (!protocol || protocol.editorType !== "complex") return;
 
@@ -69,33 +82,42 @@ export default function ComplexZoneSelectionPage() {
       ([, zones], index) => ({
         id: index + 1,
         zones: zones.sort((a, b) => a - b),
-        color: groupColors[index % groupColors.length],
+        color: GROUP_COLORS[index % GROUP_COLORS.length],
       }),
     );
 
-    setGroups(rebuiltGroups);
-    setGroupedZones(
-      rebuiltGroups.flatMap((g) => g.zones).sort((a, b) => a - b),
+    const nextGroupedZones = rebuiltGroups
+      .flatMap((g) => g.zones)
+      .sort((a, b) => a - b);
+
+    setGroups((prev) => (groupsEqual(prev, rebuiltGroups) ? prev : rebuiltGroups));
+    setGroupedZones((prev) =>
+      arraysEqual(prev, nextGroupedZones) ? prev : nextGroupedZones,
     );
-    setSelectedZones([]);
+    setSelectedZones((prev) => (prev.length === 0 ? prev : []));
     setSelectedGroupId(null);
-  }, [protocol, groupColors]);
+  }, [protocol]);
 
   useFocusEffect(
     useCallback(() => {
       const isFresh = params.fresh === "1";
 
       if (isFresh) {
-        setSelectedZones([]);
-        setGroupedZones([]);
-        setGroups([]);
+        if (handledFreshRef.current) return;
+        handledFreshRef.current = true;
+
+        setSelectedZones((prev) => (prev.length === 0 ? prev : []));
+        setGroupedZones((prev) => (prev.length === 0 ? prev : []));
+        setGroups((prev) => (prev.length === 0 ? prev : []));
         setSelectedGroupId(null);
 
         if (!protocol || protocol.editorType !== "complex") {
           initProtocol("complex");
         }
+        router.replace("/complexZoneSelection");
         return;
       }
+      handledFreshRef.current = false;
 
       if (!protocol) {
         initProtocol("complex");
@@ -143,10 +165,10 @@ export default function ComplexZoneSelectionPage() {
   const pickNextColor = useCallback((): string => {
     const used = new Set(groups.map((g) => g.color));
     return (
-      groupColors.find((c) => !used.has(c)) ??
-      groupColors[groups.length % groupColors.length]
+      GROUP_COLORS.find((c) => !used.has(c)) ??
+      GROUP_COLORS[groups.length % GROUP_COLORS.length]
     );
-  }, [groups, groupColors]);
+  }, [groups]);
 
   const createGroup = useCallback(() => {
     if (selectedZones.length === 0) return;
